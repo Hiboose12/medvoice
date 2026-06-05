@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Access Denied - MedVoice{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#1a2632] px-4">
+    <div class="max-w-md w-full text-center">
+        <!-- Icon -->
+        <div class="mb-8">
+            <div
+                class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 mb-6">
+                <span class="material-symbols-outlined text-5xl">lock</span>
+            </div>
+            <h1 class="text-4xl font-bold text-slate-900 dark:text-white mb-2">403</h1>
+            <p class="text-xl font-medium text-slate-600 dark:text-gray-300">Access Denied</p>
+        </div>
+
+        <!-- Message -->
+        <p class="text-slate-500 dark:text-gray-400 mb-8 leading-relaxed">
+            Sorry, you don't have permission to view this page. If you believe this is an error, please contact support
+            or try logging in with a different account.
+        </p>
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'home' %}"
+                class="px-6 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-colors shadow-sm hover:shadow">
+                Go to Home
+            </a>
+            <button onclick="history.back()"
+                class="px-6 py-2.5 rounded-lg border border-slate-300 dark:border-gray-600 text-slate-700 dark:text-gray-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                Go Back
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

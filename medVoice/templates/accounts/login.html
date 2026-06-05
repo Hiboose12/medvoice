@@ -1,0 +1,108 @@
+{% extends 'accounts/base_auth.html' %}
+{% load static %}
+
+{% block title %}Login{% endblock %}
+
+{% block auth_content %}
+<!-- Left Side (Professional Blue Background) -->
+<div class="hidden md:flex w-5/12 bg-[#1e3a8a] relative items-center justify-center overflow-hidden">
+
+    <!-- Background SVG Pattern -->
+    <img src="{% static 'img/login_bg.svg' %}" class="absolute inset-0 w-full h-full object-cover opacity-80"
+        alt="MedVoice Network">
+
+    <div class="relative z-10 p-12 text-left">
+        <div class="mb-8">
+            <div
+                class="h-12 w-12 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm border border-white/20 mb-6">
+                <span class="material-symbols-outlined text-white text-2xl">security</span>
+            </div>
+            <h1 class="text-4xl font-bold text-white mb-4 tracking-tight leading-tight">Secure Platform for<br>Medical
+                Grievances</h1>
+            <p class="text-blue-200 text-lg font-light leading-relaxed max-w-sm">
+                Connecting patients, hospitals, and authorities in a transparent, unified ecosystem.
+            </p>
+        </div>
+
+        <div class="flex gap-2">
+            <div class="w-12 h-1 bg-white/30 rounded-full"></div>
+            <div class="w-4 h-1 bg-white/10 rounded-full"></div>
+            <div class="w-4 h-1 bg-white/10 rounded-full"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Right Side (Clean Professional Form) -->
+<div class="w-full md:w-7/12 flex flex-col justify-center items-center p-8 md:p-24 bg-white relative">
+
+    <div class="w-full max-w-md flex flex-col gap-10">
+
+        <!-- Header -->
+        <div class="mb-2">
+            <div class="flex items-center gap-2 mb-8">
+                {% include "includes/medvoice_logo.html" %}
+            </div>
+            <h2 class="text-3xl font-bold text-gray-900 tracking-tight">Sign In</h2>
+            <p class="text-gray-500 mt-2">Welcome back! Please enter your details.</p>
+        </div>
+
+        <!-- Login Form -->
+        <form method="POST" action="{% url 'login' %}" class="flex flex-col gap-5">
+            {% csrf_token %}
+
+            <div>
+                <label for="id_username" class="block text-sm font-semibold text-gray-700 mb-2">Email or
+                    Username</label>
+                <input type="text" name="username" placeholder="Enter your username or email" required
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-sm placeholder:text-gray-400"
+                    id="id_username">
+            </div>
+
+            <div>
+                <label for="id_password" class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                <input type="password" name="password" placeholder="••••••••" required
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-sm placeholder:text-gray-400"
+                    id="id_password">
+            </div>
+
+            <div class="flex items-center justify-between text-sm">
+                <label class="flex items-center gap-2 cursor-pointer text-gray-600 hover:text-gray-900">
+                    <input type="checkbox" name="remember_me"
+                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-600">
+                    <span class="font-medium">Remember for 30 days</span>
+                </label>
+                <a href="{% url 'password_reset' %}" class="font-semibold text-blue-600 hover:text-blue-700">Forgot
+                    password?</a>
+            </div>
+
+            <button type="submit"
+                class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-lg shadow-sm hover:shadow transition-all text-sm tracking-wide">
+                Sign In
+            </button>
+        </form>
+
+        <div class="text-center mt-2">
+            <p class="text-gray-500 text-sm">Don't have an account?
+                <a href="{% url 'register' %}"
+                    class="font-bold text-gray-900 hover:text-blue-600 transition-colors">Sign up</a>
+            </p>
+        </div>
+
+        {% for message in messages %}
+        <div class="mt-4 p-4 text-sm rounded-lg flex items-center gap-2 border {% if message.tags == 'success' %}bg-green-50 text-green-700 border-green-200{% else %}bg-red-50 text-red-700 border-red-100{% endif %}"
+            role="alert">
+            <span class="material-symbols-outlined text-base">
+                {% if message.tags == 'success' %}check_circle{% else %}error{% endif %}
+            </span>
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+
+    </div>
+
+    <!-- Footer -->
+    <div class="absolute bottom-6 w-full text-center md:text-left md:px-24">
+        <p class="text-xs text-gray-400">© 2026 MedVoice Inc.</p>
+    </div>
+</div>
+{% endblock %}

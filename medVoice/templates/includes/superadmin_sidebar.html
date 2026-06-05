@@ -1,0 +1,130 @@
+<aside id="admin-sidebar"
+   class="fixed lg:sticky top-0 left-0 z-50 lg:z-20 flex flex-col w-72 h-screen border-r border-[#cfdbe7] dark:border-gray-800 bg-white dark:bg-[#1a2632] shrink-0 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-out">
+   <div class="flex h-full flex-col justify-between p-4">
+      <div class="flex flex-col gap-6">
+         <div class="flex gap-3 px-2 pt-2 items-center justify-between">
+            <div class="flex flex-col gap-1">
+               {% include 'includes/medvoice_logo.html' %}
+               <p class="text-[#4c739a] dark:text-gray-400 text-xs font-medium leading-normal">Super Admin Portal</p>
+            </div>
+            <button id="admin-sidebar-close"
+               class="lg:hidden text-[#4c739a] hover:text-[#0d141b] dark:hover:text-white transition-colors"
+               title="Close">
+               <span class="material-symbols-outlined">close</span>
+            </button>
+         </div>
+         <nav class="flex flex-col gap-2">
+            <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
+                    {% if request.resolver_match.url_name == 'admin_dashboard' %}
+                    bg-primary/10 text-primary font-semibold
+                    {% else %}
+                    text-[#4c739a] dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0d141b] dark:hover:text-white font-medium
+                    {% endif %}" href="{% url 'admin_dashboard' %}">
+               <span
+                  class="material-symbols-outlined {% if request.resolver_match.url_name == 'admin_dashboard' %}fill-1{% endif %}"
+                  style="font-size: 22px;">dashboard</span>
+               <p class="text-sm leading-normal">Dashboard</p>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
+                    {% if request.resolver_match.url_name == 'admin_users' or request.resolver_match.url_name == 'admin_user_activity' %}
+                    bg-primary/10 text-primary font-semibold
+                    {% else %}
+                    text-[#4c739a] dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0d141b] dark:hover:text-white font-medium
+                    {% endif %}" href="{% url 'admin_users' %}">
+               <span
+                  class="material-symbols-outlined {% if request.resolver_match.url_name == 'admin_users' %}fill-1{% endif %}"
+                  style="font-size: 22px;">group</span>
+               <p class="text-sm leading-normal">User Management</p>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
+                    {% if request.resolver_match.url_name == 'admin_categories' %}
+                    bg-primary/10 text-primary font-semibold
+                    {% else %}
+                    text-[#4c739a] dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0d141b] dark:hover:text-white font-medium
+                    {% endif %}" href="{% url 'admin_categories' %}">
+               <span
+                  class="material-symbols-outlined {% if request.resolver_match.url_name == 'admin_categories' %}fill-1{% endif %}"
+                  style="font-size: 22px;">description</span>
+               <p class="text-sm leading-normal">Complaint Moderation</p>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
+                    {% if request.resolver_match.url_name == 'admin_support' or request.resolver_match.url_name == 'admin_support_detail' %}
+                    bg-primary/10 text-primary font-semibold
+                    {% else %}
+                    text-[#4c739a] dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0d141b] dark:hover:text-white font-medium
+                    {% endif %}" href="{% url 'admin_support' %}">
+               <span
+                  class="material-symbols-outlined {% if request.resolver_match.url_name == 'admin_support' or request.resolver_match.url_name == 'admin_support_detail' %}fill-1{% endif %}"
+                  style="font-size: 22px;">support_agent</span>
+               <p class="text-sm leading-normal">Admin Support</p>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
+                    {% if request.resolver_match.url_name == 'admin_notifications' %}
+                    bg-primary/10 text-primary font-semibold
+                    {% else %}
+                    text-[#4c739a] dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0d141b] dark:hover:text-white font-medium
+                    {% endif %}" href="{% url 'admin_notifications' %}">
+               <span
+                  class="material-symbols-outlined {% if request.resolver_match.url_name == 'admin_notifications' %}fill-1{% endif %}"
+                  style="font-size: 22px;">notifications</span>
+               <p class="text-sm leading-normal">Notifications</p>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
+                    {% if request.resolver_match.url_name == 'approve_users' %}
+                    bg-primary/10 text-primary font-semibold
+                    {% else %}
+                    text-[#4c739a] dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0d141b] dark:hover:text-white font-medium
+                    {% endif %}" href="{% url 'approve_users' %}">
+               <span
+                  class="material-symbols-outlined {% if request.resolver_match.url_name == 'approve_users' %}fill-1{% endif %}"
+                  style="font-size: 22px;">shield</span>
+               <p class="text-sm leading-normal">Access Control</p>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
+                    {% if request.resolver_match.url_name == 'admin_profile' %}
+                    bg-primary/10 text-primary font-semibold
+                    {% else %}
+                    text-[#4c739a] dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0d141b] dark:hover:text-white font-medium
+                    {% endif %}" href="{% url 'admin_profile' %}">
+               <span
+                  class="material-symbols-outlined {% if request.resolver_match.url_name == 'admin_profile' %}fill-1{% endif %}"
+                  style="font-size: 22px;">account_circle</span>
+               <p class="text-sm leading-normal">Admin Profile</p>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
+                    {% if request.resolver_match.url_name == 'admin_settings' %}
+                    bg-primary/10 text-primary font-semibold
+                    {% else %}
+                    text-[#4c739a] dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0d141b] dark:hover:text-white font-medium
+                    {% endif %}" href="{% url 'admin_settings' %}">
+               <span
+                  class="material-symbols-outlined {% if request.resolver_match.url_name == 'admin_settings' %}fill-1{% endif %}"
+                  style="font-size: 22px;">settings</span>
+               <p class="text-sm leading-normal">Settings</p>
+            </a>
+         </nav>
+      </div>
+      <div class="flex flex-col gap-2">
+         <div class="h-px bg-[#cfdbe7] dark:bg-gray-700 my-1"></div>
+         <div
+            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-9 border border-[#cfdbe7]"
+               style='background-image: url("{{ request.user.profile_picture_url|default:"https://lh3.googleusercontent.com/aida-public/AB6AXuCTvTxK_C9gnaYZRQs4l6njP00TiGOTxFEJmZ4a_iw0p6v54bXt4_UfMcsglm-9uvH3kzdQLZAMN5vrwH6xLT1juGtHwTPH00UbaoYPZBCqX5QHqJUmcjAki4ynZI9_iwNM1Vdp1Gjgq0JaEhu7m2vV__27UYqy7M5VOwd2DsNJ9LYI0_xoirVo-aeUBQcBgDWJTmfM8mOhsMSCsInx9OJYu0WIiukqAGSEEaV-uwhVVF2g3Cj2w8UB6fYGUhyvTgfyVbfUPDzkH1c" }}");'>
+            </div>
+            <div class="flex flex-col overflow-hidden">
+               <h1 class="text-[#0d141b] dark:text-white text-sm font-medium leading-tight truncate">
+                  {{ request.user.first_name|default:request.user.username }}
+               </h1>
+               <p class="text-[#4c739a] dark:text-gray-500 text-xs font-normal leading-normal truncate">
+                  {{ request.user.email }}</p>
+            </div>
+            <form method="post" action="{% url 'logout' %}" class="ml-auto flex">
+               {% csrf_token %}
+               <button type="submit" class="text-[#4c739a] hover:text-[#0d141b] transition-colors" title="Logout">
+                  <span class="material-symbols-outlined" style="font-size: 20px;">logout</span>
+               </button>
+            </form>
+         </div>
+      </div>
+   </div>
+</aside>

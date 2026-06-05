@@ -1,0 +1,223 @@
+{% extends 'patients/patient_base.html' %}
+
+{% block title %}Patient Dashboard{% endblock %}
+
+{% block content %}
+<div>
+    <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-10">
+        <div>
+            <h2 class="text-3xl font-black tracking-tight">Welcome back, {{ user.first_name|default:user.username }}!</h2>
+            <p class="text-text-muted mt-1">Today is {% now "l, F j, Y" %}</p>
+        </div>
+        <div class="flex items-center gap-4 relative">
+            <button id="notification-btn"
+                class="size-10 flex items-center justify-center rounded-full bg-white border border-zinc-200 text-text-muted hover:text-primary hover:border-primary transition-all shadow-sm relative">
+                <span class="material-symbols-outlined">notifications</span>
+                <span id="notification-badge"
+                    class="absolute top-0 right-0 size-3 bg-red-500 rounded-full border-2 border-white hidden"></span>
+            </button>
+
+            <div id="notification-box"
+                class="absolute top-12 right-0 w-80 bg-white rounded-2xl shadow-xl border border-zinc-100 hidden z-50 overflow-hidden">
+                <div class="p-4 border-b border-zinc-100 flex justify-between items-center bg-zinc-50/50">
+                    <h3 class="font-bold text-sm">Notifications</h3>
+                    <span id="notification-count"
+                        class="text-xs font-medium text-text-muted bg-white px-2 py-0.5 rounded-full border border-zinc-200">0 new</span>
+                </div>
+                <div id="notification-list" class="max-h-[300px] overflow-y-auto">
+                    <p class="p-4 text-center text-sm text-text-muted">No new notifications</p>
+                </div>
+                <div class="p-3 border-t border-zinc-100 text-center bg-zinc-50/50">
+                    <a href="{% url 'patient_notifications' %}"
+                        class="text-xs font-bold text-primary hover:underline">View all notifications</a>
+                </div>
+            </div>
+
+            <div
+                class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold border border-primary/20">
+                {{ user.first_name.0|default:user.username.0|upper }}
+            </div>
+        </div>
+    </header>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div class="bg-white p-6 rounded-2xl shadow-soft border border-zinc-100 flex items-center gap-5">
+            <div class="size-14 rounded-xl bg-blue-50 text-primary flex items-center justify-center">
+                <span class="material-symbols-outlined text-3xl">assignment</span>
+            </div>
+            <div>
+                <p class="text-text-muted text-sm font-medium">Total Complaints</p>
+                <p class="text-2xl font-black">{{ total_complaints }}</p>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-soft border border-zinc-100 flex items-center gap-5">
+            <div class="size-14 rounded-xl bg-teal-50 text-medical-teal flex items-center justify-center">
+                <span class="material-symbols-outlined text-3xl">check_circle</span>
+            </div>
+            <div>
+                <p class="text-text-muted text-sm font-medium">Resolved</p>
+                <p class="text-2xl font-black">{{ resolved_complaints }}</p>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-soft border border-zinc-100 flex items-center gap-5">
+            <div class="size-14 rounded-xl bg-amber-50 text-medical-orange flex items-center justify-center">
+                <span class="material-symbols-outlined text-3xl">pending</span>
+            </div>
+            <div>
+                <p class="text-text-muted text-sm font-medium">Pending</p>
+                <p class="text-2xl font-black">{{ pending_complaints }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-soft border border-zinc-100 overflow-hidden">
+            <div class="p-6 border-b border-zinc-100 flex items-center justify-between">
+                <h3 class="text-lg font-bold">Recent Activity</h3>
+                <a href="{% url 'my_complaints' %}" class="text-primary text-sm font-bold hover:underline">View All</a>
+            </div>
+            <div class="divide-y divide-zinc-50">
+                {% for complaint in recent_activity %}
+                <a href="{% url 'complaint_detail' complaint.id %}"
+                    class="block p-6 flex items-start gap-4 hover:bg-zinc-50 transition-colors cursor-pointer text-inherit decoration-0">
+                    <div class="size-10 mt-1 flex-shrink-0 
+                        {% if complaint.status == 'resolved' %}bg-teal-100 text-teal-700
+                        {% elif complaint.status == 'review' %}bg-blue-100 text-primary
+                        {% else %}bg-amber-100 text-amber-700{% endif %} 
+                        rounded-full flex items-center justify-center">
+                        <span class="material-symbols-outlined text-xl">
+                            {% if complaint.status == 'resolved' %}check_circle
+                            {% elif complaint.status == 'review' %}visibility
+                            {% else %}hourglass_empty{% endif %}
+                        </span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start mb-1">
+                            <h4 class="font-bold text-sm text-zinc-900">{{ complaint.title }} - {{ complaint.hospital_name }}</h4>
+                            <span class="px-2.5 py-1 rounded-full 
+                                {% if complaint.status == 'resolved' %}bg-teal-100 text-teal-700
+                                {% elif complaint.status == 'review' %}bg-blue-100 text-primary
+                                {% else %}bg-amber-100 text-amber-700{% endif %}
+                                text-[10px] font-black uppercase tracking-wider">
+                                {{ complaint.get_status_display }}
+                            </span>
+                        </div>
+                        <p class="text-text-muted text-xs mb-2">{{ complaint.description|truncatechars:100 }}</p>
+                        <span class="text-zinc-400 text-[11px] font-medium">{{ complaint.created_at|timesince }} ago</span>
+                    </div>
+                </a>
+                {% empty %}
+                <div class="p-6 text-center py-10">
+                    <div class="size-16 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-3 text-zinc-300">
+                        <span class="material-symbols-outlined text-3xl">sentiment_dissatisfied</span>
+                    </div>
+                    <p class="text-text-muted font-medium">No complaints found.</p>
+                    <a href="{% url 'upload' %}" class="text-primary text-sm font-bold mt-2 block hover:underline">File a Complaint</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="space-y-6">
+            <div class="bg-primary rounded-2xl p-6 text-white shadow-lg shadow-primary/20 relative overflow-hidden group cursor-pointer">
+                <div class="relative z-10">
+                    <h3 class="text-lg font-bold mb-2">Report a New Issue</h3>
+                    <p class="text-white/80 text-sm mb-6">Encountered an issue with healthcare services? Our team is here to help you get it resolved.</p>
+                    <a href="{% url 'upload' %}"
+                        class="bg-white text-primary px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-zinc-50 transition-colors flex items-center gap-2 inline-flex">
+                        Get Started
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </a>
+                </div>
+                <span class="material-symbols-outlined absolute -bottom-4 -right-4 text-9xl opacity-10 rotate-12 transition-transform group-hover:scale-110">campaign</span>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-zinc-100 shadow-soft">
+                <h3 class="text-lg font-bold mb-4">Community Activity</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="size-2 rounded-full bg-primary"></div>
+                        <p class="text-sm text-text-muted">{{ community_billing_count }} new topics in <span class="font-bold text-text-main">Billing Issues</span></p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="size-2 rounded-full bg-medical-teal"></div>
+                        <p class="text-sm text-text-muted">{{ community_resolved_today }} success stories shared today</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="size-2 rounded-full bg-medical-orange"></div>
+                        <p class="text-sm text-text-muted">Join the discussion on <span class="font-bold text-text-main">Rural Access</span></p>
+                    </div>
+                </div>
+                <a href="{% url 'feed' %}"
+                    class="w-full mt-6 py-3 border border-zinc-200 rounded-xl text-sm font-bold text-text-muted hover:border-primary hover:text-primary transition-all block text-center">Go to Community Feed</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const btn = document.getElementById('notification-btn');
+        const box = document.getElementById('notification-box');
+        const list = document.getElementById('notification-list');
+        const badge = document.getElementById('notification-badge');
+        const countSpan = document.getElementById('notification-count');
+
+        function fetchNotifications() {
+            fetch("{% url 'get_notifications' %}")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.count > 0) {
+                        badge.classList.remove('hidden');
+                        countSpan.textContent = `${data.count} new`;
+
+                        let html = '';
+                        data.notifications.forEach(n => {
+                            html += `
+                                <div class="p-4 border-b border-zinc-50 hover:bg-zinc-50 transition-colors cursor-pointer" onclick="markRead(${n.id}, '${n.link || '#'}')">
+                                    <p class="text-sm font-bold text-text-main mb-1">${n.title}</p>
+                                    <p class="text-xs text-text-muted mb-2">${n.message}</p>
+                                    <p class="text-[10px] text-zinc-400 font-medium">${n.created_at}</p>
+                                </div>
+                            `;
+                        });
+                        list.innerHTML = html;
+                    } else {
+                        badge.classList.add('hidden');
+                        countSpan.textContent = "0 new";
+                        list.innerHTML = '<p class="p-4 text-center text-sm text-text-muted">No new notifications</p>';
+                    }
+                });
+        }
+
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            box.classList.toggle('hidden');
+            if (!box.classList.contains('hidden')) {
+                fetchNotifications();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!box.contains(e.target) && !btn.contains(e.target)) {
+                box.classList.add('hidden');
+            }
+        });
+
+        fetchNotifications();
+
+        window.markRead = function (id, link) {
+            fetch(`/api/notifications/read/${id}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}"
+                }
+            }).then(() => {
+                if (link && link !== '#') {
+                    window.location.href = link;
+                } else {
+                    fetchNotifications();
+                }
+            });
+        };
+    });
+</script>
+{% endblock %}

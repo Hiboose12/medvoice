@@ -1,0 +1,314 @@
+{% extends "accounts/admin_base.html" %}
+{% block title %}User Activity{% endblock %}
+
+{% block content %}
+<!-- Action Modals -->
+<div id="actionModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+    aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
+            onclick="closeActionModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div
+            class="inline-block align-bottom bg-white dark:bg-[#1a2632] rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <form id="actionForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="bg-white dark:bg-[#1a2632] px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div id="modalIconBg"
+                            class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full sm:mx-0 sm:h-10 sm:w-10">
+                            <span id="modalIcon" class="material-symbols-outlined text-[24px]">warning</span>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modalTitle">
+                                Action Title
+                            </h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500 dark:text-gray-400" id="modalDescription">
+                                    Description goes here.
+                                </p>
+                                <div class="mt-4">
+                                    <label for="actionInput"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                                        id="inputLabel">Message/Reason</label>
+                                    <textarea name="message" id="actionInput" rows="3" required
+                                        class="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md"
+                                        placeholder="Enter details here..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-[#15202b] px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="submit" id="submitBtn"
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                        Confirm
+                    </button>
+                    <button type="button" onclick="closeActionModal()"
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="mb-8 flex items-center justify-between">
+    <div>
+        <div class="flex items-center gap-3 mb-1">
+            <a href="{% url 'admin_users' %}" class="text-slate-400 hover:text-slate-600 transition-colors">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <h1 class="text-3xl font-bold text-slate-900 dark:text-white">Activity Log</h1>
+        </div>
+        <p class="text-slate-500 dark:text-gray-400 ml-9">
+            Viewing activities for <span class="font-bold text-slate-700 dark:text-white">
+                {{ target_user.first_name|default:target_user.username }}</span> ({{ target_user.get_role_display }})
+        </p>
+    </div>
+
+    <div class="flex items-center gap-4">
+        <!-- New Buttons -->
+        <div class="flex gap-2">
+            <button onclick="openActionModal('warn', '{{ target_user.id }}', '{{ target_user.username }}')"
+                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-sm">
+                <span class="material-symbols-outlined text-[18px] mr-1">warning</span>
+                Warn
+            </button>
+
+            {% if target_user.account_status == 'active' %}
+            <button onclick="openActionModal('freeze', '{{ target_user.id }}', '{{ target_user.username }}')"
+                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm">
+                <span class="material-symbols-outlined text-[18px] mr-1">ac_unit</span>
+                Freeze
+            </button>
+            {% elif target_user.account_status == 'frozen' %}
+            <form action="{% url 'admin_reactivate_user' target_user.id %}" method="POST" class="inline">
+                {% csrf_token %}
+                <button type="submit"
+                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-sm">
+                    <span class="material-symbols-outlined text-[18px] mr-1">play_circle</span>
+                    Reactivate
+                </button>
+            </form>
+            {% endif %}
+
+            {% if target_user.account_status != 'blocked' %}
+            <button onclick="openActionModal('block', '{{ target_user.id }}', '{{ target_user.username }}')"
+                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm">
+                <span class="material-symbols-outlined text-[18px] mr-1">block</span>
+                Block
+            </button>
+            {% else %}
+            <form action="{% url 'admin_reactivate_user' target_user.id %}" method="POST" class="inline">
+                {% csrf_token %}
+                <button type="submit"
+                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 shadow-sm">
+                    <span class="material-symbols-outlined text-[18px] mr-1">play_circle</span>
+                    Unblock
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+        <div class="h-8 w-[1px] bg-slate-200 dark:bg-gray-700"></div>
+
+        <div class="flex items-center gap-2">
+            <span class="px-3 py-1 rounded-full text-xs font-bold 
+                {% if target_user.role == 'patient' %}bg-teal-50 text-teal-700 border border-teal-100
+                {% elif target_user.role == 'hospital' %}bg-blue-50 text-blue-700 border border-blue-100
+                {% elif target_user.role == 'authority' %}bg-purple-50 text-purple-700 border border-purple-100
+                {% else %}bg-gray-50 text-gray-700 border border-gray-100{% endif %}">
+                {{ target_user.role|title }}
+            </span>
+            <span class="text-sm text-slate-400">@{{ target_user.username }}</span>
+        </div>
+    </div>
+</div>
+
+{% if freeze_records %}
+<div class="mb-8 bg-white dark:bg-[#1a2632] rounded-xl shadow border border-[#cfdbe7] dark:border-gray-800 overflow-hidden max-w-4xl">
+    <div class="px-6 py-4 border-b border-[#cfdbe7] dark:border-gray-800 bg-red-50 dark:bg-red-900/20 flex justify-between items-center">
+        <h2 class="text-lg font-bold text-red-800 dark:text-red-400">
+            <span class="material-symbols-outlined align-middle mr-2">ac_unit</span>
+            Hospital Freeze Records with Pending Appeals
+        </h2>
+    </div>
+    <div class="p-6">
+        <div class="flex flex-col gap-4">
+            {% for freeze in freeze_records %}
+            <div class="border border-red-200 dark:border-red-800 rounded-lg p-4 bg-red-50/50 dark:bg-red-900/10">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold
+                            {% if freeze.status == 'frozen' %}bg-red-100 text-red-800
+                            {% elif freeze.status == 'pending_review' %}bg-yellow-100 text-yellow-800{% endif %}">
+                            {{ freeze.get_status_display }}
+                        </span>
+                        <span class="ml-2 text-sm text-slate-500 dark:text-gray-400">
+                            Frozen by: <span class="font-medium">{{ freeze.frozen_by.get_role_display|title }}</span>
+                        </span>
+                    </div>
+                    <span class="text-xs text-slate-400">{{ freeze.frozen_at|date:"M d, Y H:i" }}</span>
+                </div>
+                <p class="text-sm text-slate-700 dark:text-gray-300 mb-2">{{ freeze.reason }}</p>
+                {% if freeze.explanation_evidence %}
+                <div class="mt-2">
+                    <p class="text-xs font-medium text-slate-500 dark:text-gray-400 mb-1">Evidence submitted:</p>
+                    <a href="{{ freeze.explanation_evidence.url }}" target="_blank" 
+                        class="inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-blue-700">
+                        <span class="material-symbols-outlined">attach_file</span>
+                        View Evidence
+                    </a>
+                </div>
+                {% endif %}
+                {% if freeze.status == 'pending_review' %}
+                <div class="mt-3 flex gap-2">
+                    <form action="{% url 'admin_approve_hospital_appeal' freeze.id %}" method="POST" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" 
+                            class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
+                            <span class="material-symbols-outlined text-sm mr-1">check_circle</span>
+                            Approve Appeal
+                        </button>
+                    </form>
+                    <form action="{% url 'admin_reject_hospital_appeal' freeze.id %}" method="POST" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" 
+                            class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
+                            <span class="material-symbols-outlined text-sm mr-1">cancel</span>
+                            Reject Appeal
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div
+    class="bg-white dark:bg-[#1a2632] rounded-xl shadow border border-[#cfdbe7] dark:border-gray-800 overflow-hidden max-w-4xl">
+    <div
+        class="px-6 py-4 border-b border-[#cfdbe7] dark:border-gray-800 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center">
+        <h2 class="text-lg font-bold text-slate-800 dark:text-white">Timeline</h2>
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">{{ activities|length }}
+            Activities</span>
+    </div>
+
+    {% if activities %}
+    <div class="p-6 relative">
+        <div class="absolute left-10 top-6 bottom-6 w-0.5 bg-slate-200 dark:bg-slate-700"></div>
+
+        <div class="flex flex-col gap-8">
+            {% for activity in activities %}
+            <div class="relative flex gap-6 items-start group">
+                <div class="z-10 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm
+                    {% if activity.type == 'Complaint' %}bg-red-100 text-red-600
+                    {% elif activity.type == 'Comment' %}bg-blue-100 text-blue-600
+                    {% elif activity.type == 'Like' %}bg-yellow-100 text-yellow-600
+                    {% elif activity.type == 'Response' %}bg-teal-100 text-teal-600
+                    {% elif 'Warning' in activity.type %}bg-orange-100 text-orange-600
+                    {% elif 'Freeze' in activity.type or 'Frozen' in activity.type %}bg-red-100 text-red-700
+                    {% elif activity.type == 'Oversight' %}bg-indigo-100 text-indigo-600
+                    {% else %}bg-slate-100 text-slate-600{% endif %}">
+                    <span class="material-symbols-outlined text-sm">{{ activity.icon }}</span>
+                </div>
+
+                <div
+                    class="flex-1 bg-white dark:bg-[#1a2632] border border-slate-100 dark:border-gray-800 rounded-lg p-4 shadow-sm hover:shadow-md hover:border-blue-200 transition-all">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-xs font-bold uppercase tracking-wider 
+                            {% if activity.type == 'Complaint' %}text-red-500
+                            {% elif activity.type == 'Comment' %}text-blue-500
+                            {% elif activity.type == 'Like' %}text-yellow-600
+                            {% elif activity.type == 'Response' %}text-teal-600
+                            {% elif 'Warning' in activity.type %}text-orange-600
+                            {% elif 'Freeze' in activity.type or 'Frozen' in activity.type %}text-red-700
+                            {% elif activity.type == 'Oversight' %}text-indigo-500
+                            {% else %}text-slate-500{% endif %}">
+                            {{ activity.type }}
+                        </span>
+                        <span class="text-xs text-slate-400">{{ activity.date|date:"M d, Y H:i" }}</span>
+                    </div>
+
+                    <p class="text-slate-800 dark:text-white font-medium mb-2">{{ activity.description }}</p>
+
+                    {% if activity.link %}
+                    <a href="{{ activity.link }}"
+                        class="inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-blue-700">
+                        View Details
+                        <span class="material-symbols-outlined text-xs">open_in_new</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="p-12 text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-50 mb-4">
+            <span class="material-symbols-outlined text-slate-300 text-3xl">history</span>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white">No Activity Yet</h3>
+        <p class="text-slate-500 dark:text-gray-400">This user hasn't performed any recorded activities.</p>
+    </div>
+    {% endif %}
+</div>
+<script>
+    function openActionModal(action, userId, username) {
+        const modal = document.getElementById('actionModal');
+        const form = document.getElementById('actionForm');
+        const title = document.getElementById('modalTitle');
+        const desc = document.getElementById('modalDescription');
+        const iconBg = document.getElementById('modalIconBg');
+        const icon = document.getElementById('modalIcon');
+        const submitBtn = document.getElementById('submitBtn');
+        const input = document.getElementById('actionInput');
+
+        modal.classList.remove('hidden');
+
+        if (action === 'warn') {
+            form.action = `/dashboard/admin_warn_user/${userId}/`;
+            title.textContent = `Warn ${username}`;
+            desc.textContent = "Send an official warning to this user. They will receive a notification.";
+            iconBg.className = "mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-orange-100 sm:mx-0 sm:h-10 sm:w-10";
+            icon.className = "material-symbols-outlined text-[24px] text-orange-600";
+            icon.textContent = "warning";
+            submitBtn.className = "w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-orange-600 text-base font-medium text-white hover:bg-orange-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm";
+            submitBtn.textContent = "Send Warning";
+            input.name = "message";
+            input.placeholder = "Enter warning message...";
+        } else if (action === 'freeze') {
+            form.action = `/dashboard/admin_freeze_user/${userId}/`;
+            title.textContent = `Freeze ${username}'s Account`;
+            desc.textContent = "Temporarily disable this account. The user will be logged out and must request reactivation.";
+            iconBg.className = "mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10";
+            icon.className = "material-symbols-outlined text-[24px] text-blue-600";
+            icon.textContent = "ac_unit";
+            submitBtn.className = "w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm";
+            submitBtn.textContent = "Freeze Account";
+            input.name = "reason";
+            input.placeholder = "Reason for freezing...";
+        } else if (action === 'block') {
+            form.action = `/dashboard/admin_block_user/${userId}/`;
+            title.textContent = `Block ${username} Permanently`;
+            desc.textContent = "Permanently ban this user. Their content will be hidden from the public.";
+            iconBg.className = "mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10";
+            icon.className = "material-symbols-outlined text-[24px] text-red-600";
+            icon.textContent = "block";
+            submitBtn.className = "w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm";
+            submitBtn.textContent = "Block User";
+            input.name = "reason";
+            input.placeholder = "Reason for blocking...";
+        }
+    }
+
+    function closeActionModal() {
+        document.getElementById('actionModal').classList.add('hidden');
+    }
+</script>
+{% endblock %}

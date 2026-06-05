@@ -1,0 +1,64 @@
+{% extends 'hospitals/hospital_base.html' %}
+{% block title %}Notifications - Hospital Portal{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl font-bold text-[#0d141b]">Notifications</h1>
+    <p class="text-[#4c739a] text-sm mt-1">Updates on complaints, messages, and system alerts.</p>
+</div>
+
+<div class="bg-white rounded-xl border border-[#e7edf3] overflow-hidden">
+    {% if notifications %}
+    <div class="divide-y divide-[#e7edf3]">
+        {% for notification in notifications %}
+        <a href="{% url 'mark_notification_read' notification.id %}"
+            class="block p-4 hover:bg-slate-50 transition-colors {% if not notification.is_read %}bg-blue-50/50 border-l-4 border-l-blue-500{% else %}border-l-4 border-l-transparent{% endif %}">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 mt-1">
+                    {% if "message" in notification.title.lower %}
+                    <span class="material-symbols-outlined text-blue-500 bg-blue-100 p-2 rounded-lg">chat</span>
+                    {% elif "complaint" in notification.title.lower %}
+                    <span
+                        class="material-symbols-outlined text-orange-500 bg-orange-100 p-2 rounded-lg">assignment_late</span>
+                    {% elif "resolved" in notification.title.lower %}
+                    <span
+                        class="material-symbols-outlined text-green-500 bg-green-100 p-2 rounded-lg">check_circle</span>
+                    {% else %}
+                    <span
+                        class="material-symbols-outlined text-gray-500 bg-gray-100 p-2 rounded-lg">notifications</span>
+                    {% endif %}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between mb-1">
+                        <h3
+                            class="text-sm font-semibold text-[#0d141b] {% if not notification.is_read %}font-bold{% endif %}">
+                            {{ notification.title }}
+                        </h3>
+                        <span class="text-xs text-[#4c739a] whitespace-nowrap ml-2">
+                            {{ notification.created_at|timesince }} ago
+                        </span>
+                    </div>
+                    <p class="text-sm text-[#4c739a] line-clamp-2">
+                        {{ notification.message }}
+                    </p>
+                </div>
+                {% if not notification.is_read %}
+                <div class="flex-shrink-0 self-center">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full block"></span>
+                </div>
+                {% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="p-12 text-center">
+        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="material-symbols-outlined text-3xl text-slate-400">notifications_off</span>
+        </div>
+        <h3 class="text-lg font-medium text-[#0d141b] mb-1">No notifications yet</h3>
+        <p class="text-[#4c739a]">You're all caught up! Check back later for updates.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

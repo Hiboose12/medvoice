@@ -1,0 +1,142 @@
+{% extends "authorities/authority_base.html" %}
+{% load static %}
+
+{% block title %}Settings - Health Authority{% endblock %}
+
+{% block header_title %}Settings{% endblock %}
+{% block header_subtitle %}Configure your authority preferences{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl">
+    <!-- Notification Settings -->
+    <div class="bg-white rounded-xl border border-zinc-200 p-6 mb-6">
+        <h2 class="text-lg font-bold text-text-main mb-4">Notification Preferences</h2>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_notifications">
+            <div class="space-y-4">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" name="email_notifications" {% if settings.email_notifications %}checked 
+                    {% endif %} class="w-5 h-5 rounded border-zinc-300 text-primary focus:ring-primary">
+                    <span class="text-text-main">Email Notifications</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" name="escalation_alerts" {% if settings.escalation_alerts %}checked
+                     {% endif %} class="w-5 h-5 rounded border-zinc-300 text-primary focus:ring-primary">
+                    <span class="text-text-main">Escalation Alerts</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" name="warning_alerts" {% if settings.warning_alerts %}checked {% endif %}
+                        class="w-5 h-5 rounded border-zinc-300 text-primary focus:ring-primary">
+                    <span class="text-text-main">Warning Alerts</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" name="freeze_alerts" {% if settings.freeze_alerts %}checked {% endif %}
+                        class="w-5 h-5 rounded border-zinc-300 text-primary focus:ring-primary">
+                    <span class="text-text-main">Freeze Alerts</span>
+                </label>
+            </div>
+            <button type="submit"
+                class="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                Save Preferences
+            </button>
+        </form>
+    </div>
+
+    <!-- Threshold Settings -->
+    <div class="bg-white rounded-xl border border-zinc-200 p-6 mb-6">
+        <h2 class="text-lg font-bold text-text-main mb-4">Escalation Thresholds</h2>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_thresholds">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-text-muted mb-1">Response Time (hours)</label>
+                    <input type="number" name="response_time_threshold" value="{{ settings.response_time_threshold }}"
+                        class="w-full px-4 py-2 border border-zinc-200 rounded-lg focus:ring-2 focus:ring-primary/20"
+                        min="1">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-text-muted mb-1">View Time (hours)</label>
+                    <input type="number" name="view_time_threshold" value="{{ settings.view_time_threshold }}"
+                        class="w-full px-4 py-2 border border-zinc-200 rounded-lg focus:ring-2 focus:ring-primary/20"
+                        min="1">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-text-muted mb-1">Warning Threshold</label>
+                    <input type="number" name="warning_threshold" value="{{ settings.warning_threshold }}"
+                        class="w-full px-4 py-2 border border-zinc-200 rounded-lg focus:ring-2 focus:ring-primary/20"
+                        min="1">
+                </div>
+            </div>
+            <button type="submit"
+                class="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                Save Thresholds
+            </button>
+        </form>
+    </div>
+    <!-- Security Settings -->
+    <div id="security" class="bg-white rounded-xl border border-zinc-200 p-6 mb-6">
+        <h2 class="text-lg font-bold text-text-main mb-4">Security</h2>
+        <div class="flex flex-col gap-6">
+            <div
+                class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-zinc-50 rounded-lg border border-zinc-200">
+                <div class="flex items-start gap-4">
+                    <div class="p-2 bg-white rounded-lg shadow-sm text-zinc-600">
+                        <span class="material-symbols-outlined">key</span>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-text-main">Password</h3>
+                        <p class="text-xs text-text-muted mt-0.5">Last changed {{ user.last_login|timesince }} ago</p>
+                    </div>
+                </div>
+            </div>
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="password">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-text-main mb-2">Current
+                            Password</label>
+                        {{ password_form.old_password }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-text-main mb-2">New
+                            Password</label>
+                        {{ password_form.new_password1 }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-text-main mb-2">Confirm New
+                            Password</label>
+                        {{ password_form.new_password2 }}
+                    </div>
+                </div>
+                <!-- Display password form errors if any -->
+                {% if password_form.errors %}
+                <div class="p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+                    {{ password_form.errors }}
+                </div>
+                {% endif %}
+                <div class="flex justify-end">
+                    <button
+                        class="px-4 py-2 text-sm font-semibold text-white bg-primary hover:bg-primary-dark rounded-lg transition-colors shadow-sm">
+                        Update Password
+                    </button>
+                </div>
+            </form>
+            <div
+                class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-zinc-50 rounded-lg border border-zinc-200">
+                <div class="flex items-start gap-4">
+                    <div class="p-2 bg-white rounded-lg shadow-sm text-zinc-600">
+                        <span class="material-symbols-outlined">history</span>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-text-main">Last Login Information</h3>
+                        <p class="text-xs text-text-muted mt-0.5">{{ user.last_login }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends "hospitals/hospital_base.html" %}
+{% block content %}
+<div class="flex-1 flex flex-col h-full overflow-hidden relative">
+  <div class="w-full bg-background-light dark:bg-background-dark sticky top-0 z-10 px-6 py-8 md:px-10">
+    <header class="w-full bg-background-light dark:bg-background-dark sticky top-0 z-10 px-6 py-8 md:px-10">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div class="flex flex-col gap-2">
+          <h1 class="text-slate-900 dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-[-0.033em]">
+            Hospital Admin Settings</h1>
+          <p class="text-slate-500 dark:text-slate-400 text-base font-normal leading-normal">Manage your hospital
+            profile, verification documents, and security preferences</p>
+        </div>
+      </div>
+  </div>
+  <div class="flex-1 overflow-y-auto p-6 md:px-10 pb-20">
+    <div class="max-w-4xl mx-auto">
+      <div class="space-y-8">
+        <section class="bg-white dark:bg-[#15202b] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm"
+          id="profile">
+          <div class="p-6 border-b border-slate-200 dark:border-slate-800">
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white">Hospital Profile</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Update your hospital's contact information
+              and public details.</p>
+          </div>
+          <div class="p-6">
+            <form method="POST" enctype="multipart/form-data" class="space-y-6">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="profile">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="col-span-1 md:col-span-2">
+                  <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Hospital
+                    Name</label>
+                  {{ hospital_form.hospital_name }}
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Hospital
+                    Type</label>
+                  {{ hospital_form.hospital_type }}
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Registration
+                    Number</label>
+                  {{ hospital_form.registration_number }}
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">License
+                    Number</label>
+                  {{ hospital_form.license_number }}
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Official
+                    Email</label>
+                  {{ hospital_form.email }}
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Phone
+                    Number</label>
+                  {{ hospital_form.contact_number }}
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">District</label>
+                  {{ hospital_form.district }}
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">State</label>
+                  {{ hospital_form.state }}
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Pincode</label>
+                  {{ hospital_form.pincode }}
+                </div>
+                <div class="col-span-1 md:col-span-2">
+                  <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Hospital
+                    Address</label>
+                  {{ hospital_form.address }}
+                </div>
+                <div class="col-span-1 md:col-span-2">
+                  <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Profile
+                    Photo</label>
+                  {{ profile_form.photo }}
+                </div>
+              </div>
+              <div class="flex justify-end pt-4">
+                <button
+                  class="px-6 py-2.5 bg-primary hover:bg-blue-600 text-white font-semibold rounded-lg shadow-sm transition-colors"
+                  type="submit">
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <section class="bg-white dark:bg-[#15202b] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm"
+          id="security">
+          <div class="p-6 border-b border-slate-200 dark:border-slate-800">
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white">Security Settings</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage password and view login activity.</p>
+          </div>
+          <div class="p-6">
+            <div class="flex flex-col gap-6">
+              <div
+                class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                <div class="flex items-start gap-4">
+                  <div class="p-2 bg-white dark:bg-slate-700 rounded-lg shadow-sm text-slate-600 dark:text-slate-300">
+                    <span class="material-symbols-outlined">key</span>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">Password</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Last changed 3 months ago</p>
+                  </div>
+                </div>
+              </div>
+              <form method="POST" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="password">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Current
+                      Password</label>
+                    {{ password_form.old_password }}
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">New
+                      Password</label>
+                    {{ password_form.new_password1 }}
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Confirm New
+                      Password</label>
+                    {{ password_form.new_password2 }}
+                  </div>
+                </div>
+                <div class="flex justify-end">
+                  <button
+                    class="px-4 py-2 text-sm font-semibold text-white bg-primary hover:bg-blue-600 rounded-lg transition-colors shadow-sm">
+                    Update Password
+                  </button>
+                </div>
+              </form>
+              <div
+                class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                <div class="flex items-start gap-4">
+                  <div class="p-2 bg-white dark:bg-slate-700 rounded-lg shadow-sm text-slate-600 dark:text-slate-300">
+                    <span class="material-symbols-outlined">history</span>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">Last Login Information</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Oct 26, 2023 at 09:15 AM</p>
+                  </div>
+                </div>
+                <span
+                  class="text-xs font-mono text-slate-500 bg-white dark:bg-slate-900 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">
+                  IP: 192.168.1.42
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

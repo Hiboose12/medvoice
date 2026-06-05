@@ -1,0 +1,54 @@
+{% extends "authorities/authority_base.html" %}
+{% load static %}
+
+{% block title %}Freeze Hospital - Health Authority{% endblock %}
+
+{% block header_title %}Freeze Hospital{% endblock %}
+{% block header_subtitle %}Block hospital from accessing the platform{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <div class="bg-white rounded-xl border border-red-200 p-6">
+        <div class="flex items-center gap-4 mb-6">
+            <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+                <span class="material-symbols-outlined text-red-600 text-3xl">block</span>
+            </div>
+            <div>
+                <h2 class="text-xl font-bold text-text-main">Freeze {{ hospital.username }}</h2>
+                <p class="text-text-muted">This will prevent the hospital from logging in or responding to complaints.</p>
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-text-muted mb-1">Reason for Freeze</label>
+                    <select name="reason" class="w-full px-4 py-2 border border-zinc-200 rounded-lg focus:ring-2 focus:ring-primary/20" required>
+                        <option value="warning_limit">Exceeded warning limit</option>
+                        <option value="critical_complaint">Critical complaint</option>
+                        <option value="non_compliance">Non-compliance</option>
+                        <option value="investigation">Under investigation</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-text-muted mb-1">Description</label>
+                    <textarea name="description" rows="4" 
+                        class="w-full px-4 py-2 border border-zinc-200 rounded-lg focus:ring-2 focus:ring-primary/20"
+                        placeholder="Provide details about the freeze reason..." required></textarea>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <a href="{% url 'authority_hospitals' %}" class="flex-1 px-4 py-2 text-center border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                    Freeze Hospital
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

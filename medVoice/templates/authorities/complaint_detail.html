@@ -1,0 +1,210 @@
+{% extends "authorities/authority_base.html" %}
+{% load static %}
+
+{% block title %}Complaint #{{ complaint.id }} - Health Authority{% endblock %}
+
+{% block header_title %}Complaint Details{% endblock %}
+{% block header_subtitle %}Reviewing complaint #{{ complaint.id }}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <a href="{% url 'authority_complaints' %}"
+        class="flex items-center gap-2 text-text-muted font-bold text-sm hover:text-primary transition-colors mb-4 inline-flex">
+        <span class="material-symbols-outlined text-lg">arrow_back</span>
+        Back to Complaints
+    </a>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Main Content -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Complaint Info -->
+        <div class="bg-white rounded-xl border border-zinc-200 p-6">
+            <div class="flex items-start justify-between mb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-text-main">{{ complaint.title }}</h2>
+                    <p class="text-sm text-text-muted">#{{ complaint.id }} • {{ complaint.created_at|date:"M d, Y" }}</p>
+                </div>
+                <div class="flex gap-2">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
+                        {% if complaint.severity == 'high' %}bg-red-100 text-red-700
+                        {% elif complaint.severity == 'medium' %}bg-amber-100 text-amber-700
+                        {% else %}bg-teal-100 text-teal-700{% endif %}">
+                        {{ complaint.get_severity_display }}
+                    </span>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
+                        {% if complaint.status == 'resolved' %}bg-emerald-100 text-emerald-700
+                        {% elif complaint.status == 'responded' %}bg-blue-100 text-blue-700
+                        {% elif complaint.status == 'review' %}bg-amber-100 text-amber-700
+                        {% else %}bg-zinc-100 text-zinc-700{% endif %}">
+                        {{ complaint.get_status_display }}
+                    </span>
+                    {% if complaint.escalated_to_authority %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                        <span class="material-symbols-outlined text-xs mr-1">warning</span>
+                        Escalated
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <p class="text-text-main mb-4">{{ complaint.description }}</p>
+            
+            <!-- Evidence -->
+            {% if complaint.evidence %}
+            <div class="border border-zinc-200 rounded-lg p-4 mt-4">
+                <p class="text-sm font-medium text-text-muted mb-2">Evidence:</p>
+                {% with complaint.evidence.url|lower as file_url %}
+                {% if ".jpg" in file_url or ".jpeg" in file_url or ".png" in file_url or ".webp" in file_url %}
+                <img src="{{ complaint.evidence.url }}" class="max-w-full rounded-lg" alt="Evidence">
+                {% elif ".mp4" in file_url or ".webm" in file_url %}
+                <video controls class="max-w-full rounded-lg">
+                    <source src="{{ complaint.evidence.url }}">
+                </video>
+                {% else %}
+                <a href="{{ complaint.evidence.url }}" target="_blank" class="flex items-center gap-2 text-primary hover:underline">
+                    <span class="material-symbols-outlined">attach_file</span>
+                    View Attached File
+                </a>
+                {% endif %}
+                {% endwith %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Hospital Responses -->
+        <div class="bg-white rounded-xl border border-zinc-200 p-6">
+            <h3 class="text-lg font-bold text-text-main mb-4">Hospital Responses</h3>
+            {% for response in responses %}
+            <div class="border border-zinc-200 rounded-lg p-4 mb-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-blue-600 text-sm">domain</span>
+                    </div>
+                    <span class="font-medium text-text-main">{{ response.hospital.username }}</span>
+                    <span class="text-sm text-text-muted">{{ response.created_at|timesince }} ago</span>
+                </div>
+                <p class="text-text-main">{{ response.message }}</p>
+            </div>
+            {% empty %}
+            <p class="text-text-muted">No responses yet.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Activity Timeline -->
+        <div class="bg-white rounded-xl border border-zinc-200 p-6">
+            <h3 class="text-lg font-bold text-text-main mb-4">Activity Timeline</h3>
+            <div class="space-y-4">
+                {% for log in activity_logs %}
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
+                        {% if 'escalated' in log.activity_type %}bg-red-100
+                        {% elif 'viewed' in log.activity_type %}bg-blue-100
+                        {% elif 'responded' in log.activity_type %}bg-emerald-100
+                        {% else %}bg-zinc-100{% endif %}">
+                        <span class="material-symbols-outlined text-sm
+                            {% if 'escalated' in log.activity_type %}text-red-600
+                            {% elif 'viewed' in log.activity_type %}text-blue-600
+                            {% elif 'responded' in log.activity_type %}text-emerald-600
+                            {% else %}text-zinc-600{% endif %}">
+                            {% if 'escalated' in log.activity_type %}warning
+                            {% elif 'viewed' in log.activity_type %}visibility
+                            {% elif 'responded' in log.activity_type %}reply
+                            {% elif 'warning' in log.activity_type %}report
+                            {% else %}info{% endif %}
+                        </span>
+                    </div>
+                    <div>
+                        <p class="font-medium text-text-main">{{ log.get_activity_type_display }}</p>
+                        <p class="text-sm text-text-muted">{{ log.description }}</p>
+                        <p class="text-xs text-text-muted mt-1">{{ log.created_at|date:"M d, Y h:i A" }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-text-muted">No activity recorded.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- Hospital Info -->
+        <div class="bg-white rounded-xl border border-zinc-200 p-6">
+            <h3 class="text-lg font-bold text-text-main mb-4">Hospital Information</h3>
+            <div class="space-y-3">
+                <div>
+                    <p class="text-sm text-text-muted">Name</p>
+                    <p class="font-medium text-text-main">{{ complaint.hospital_name }}</p>
+                </div>
+                {% if hospital_profile %}
+                <div>
+                    <p class="text-sm text-text-muted">Type</p>
+                    <p class="font-medium text-text-main">{{ hospital_profile.get_hospital_type_display }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-text-muted">District</p>
+                    <p class="font-medium text-text-main">{{ hospital_profile.district|default:"N/A" }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-text-muted">State</p>
+                    <p class="font-medium text-text-main">{{ hospital_profile.state }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="bg-white rounded-xl border border-zinc-200 p-6">
+            <h3 class="text-lg font-bold text-text-main mb-4">Actions</h3>
+            <div class="space-y-3">
+                <a href="{% url 'authority_issue_warning' complaint.hospital.id %}?complaint={{ complaint.id }}" 
+                    class="flex items-center gap-3 p-3 rounded-lg border border-amber-200 hover:bg-amber-50 transition-colors">
+                    <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-amber-600">warning</span>
+                    </div>
+                    <div>
+                        <p class="font-medium text-text-main">Issue Warning</p>
+                        <p class="text-xs text-text-muted">Send warning to hospital</p>
+                    </div>
+                </a>
+
+                {% if not complaint.hospital.is_active %}
+                <a href="{% url 'authority_unfreeze_hospital' complaint.hospital.id %}" 
+                    class="flex items-center gap-3 p-3 rounded-lg border border-emerald-200 hover:bg-emerald-50 transition-colors">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-emerald-600">restore</span>
+                    </div>
+                    <div>
+                        <p class="font-medium text-text-main">Reactivate Hospital</p>
+                        <p class="text-xs text-text-muted">Lift freeze on hospital</p>
+                    </div>
+                </a>
+                {% else %}
+                <a href="{% url 'authority_freeze_hospital' complaint.hospital.id %}" 
+                    class="flex items-center gap-3 p-3 rounded-lg border border-red-200 hover:bg-red-50 transition-colors">
+                    <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-red-600">block</span>
+                    </div>
+                    <div>
+                        <p class="font-medium text-text-main">Freeze Hospital</p>
+                        <p class="text-xs text-text-muted">Block hospital from logging in</p>
+                    </div>
+                </a>
+                {% endif %}
+
+                <a href="{% url 'authority_chat' %}?hospital={{ complaint.hospital.id }}" 
+                    class="flex items-center gap-3 p-3 rounded-lg border border-zinc-200 hover:bg-zinc-50 transition-colors">
+                    <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-blue-600">chat</span>
+                    </div>
+                    <div>
+                        <p class="font-medium text-text-main">Contact Hospital</p>
+                        <p class="text-xs text-text-muted">Send direct message</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

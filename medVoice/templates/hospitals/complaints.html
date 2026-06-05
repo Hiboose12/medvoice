@@ -1,0 +1,249 @@
+{% extends "hospitals/hospital_base.html" %}
+{% block content %}
+<div class="flex-1 flex flex-col h-full overflow-hidden relative">
+    <!-- TopNavBar Component -->
+    <header class="flex items-center justify-between border-b border-[#e7edf3] bg-white px-6 py-3 h-16 shrink-0 z-10">
+        <div class="flex items-center gap-4 md:hidden">
+            <button class="text-[#0d141b]">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+            {% include "includes/medvoice_logo.html" %}
+        </div>
+        <!-- Breadcrumbs or simple title for mobile -->
+        <div class="hidden md:flex text-sm text-[#4c739a]">
+            <span>Portal</span>
+            <span class="mx-2">/</span>
+            <span class="text-[#0d141b] font-medium">Complaints Management</span>
+        </div>
+        <div class="flex items-center gap-4 ml-auto">
+            <button class="relative p-2 text-[#4c739a] hover:text-primary transition-colors">
+                <span class="material-symbols-outlined">notifications</span>
+                <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+            </button>
+            <div class="h-8 w-[1px] bg-[#e7edf3] mx-1"></div>
+        </div>
+    </header>
+    <!-- Scrollable Content -->
+    <main class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8">
+        <div class="mx-auto max-w-7xl flex flex-col gap-6">
+            <!-- Page Heading & Actions -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-[#0d141b] tracking-tight">Complaints</h1>
+                    <p class="text-[#4c739a] text-sm mt-1">Overview of patient feedback and resolution status</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <!-- Search Bar -->
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="material-symbols-outlined text-[#4c739a] text-[20px]">search</span>
+                        </div>
+                        <form method="get">
+                            <input
+                                class="block w-full sm:w-64 pl-10 pr-3 py-2 border-none ring-1 ring-[#cfdbe7] rounded-lg leading-5 bg-white placeholder-[#4c739a] focus:outline-none focus:ring-2 focus:ring-primary/50 sm:text-sm transition-shadow"
+                                name="q" value="{{ request.GET.q }}" placeholder="Search by ID or Patient..."
+                                type="text" />
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- Status Filter Tabs -->
+            <div class="border-b border-[#e7edf3]">
+                <nav aria-label="Tabs" class="-mb-px flex flex-wrap gap-4">
+                    <!-- Active Tab Logic -->
+                    <a class="{% if current_status == 'all' %}border-primary text-primary{% else %}border-transparent text-[#4c739a] hover:text-[#0d141b] hover:border-gray-300{% endif %} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors"
+                        href="?status=all">
+                        All
+                        <span class="{% if current_status == 'all' %}bg-blue-50 text-blue-600
+                            {% else %}bg-gray-100 text-gray-600
+                            {% endif %} 
+                            py-0.5 px-2 rounded-full text-xs font-bold">
+                            {{total_count }}</span>
+                    </a>
+                    <a class="{% if current_status == 'new' %}border-primary text-primary
+                    {% else %}border-transparent text-[#4c739a] hover:text-[#0d141b] hover:border-gray-300
+                    {% endif %} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors"
+                        href="?status=new">
+                        New
+                        <span class="{% if current_status == 'new' %}bg-blue-50 text-blue-600
+                            {% else %}bg-gray-100 text-gray-600
+                            {% endif %} 
+                            py-0.5 px-2 rounded-full text-xs">
+                            {{new_count }}</span>
+                    </a>
+                    <a class="{% if current_status == 'investigating' %}border-primary text-primary
+                    {% else %}border-transparent text-[#4c739a] hover:text-[#0d141b] hover:border-gray-300
+                    {% endif %} 
+                    whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors"
+                        href="?status=investigating">
+                        Investigating
+                        <span class="{% if current_status == 'investigating' %}bg-blue-50 text-blue-600
+                            {% else %}bg-gray-100 text-gray-600
+                            {% endif %} 
+                            py-0.5 px-2 rounded-full text-xs">
+                            {{review_count }}</span>
+                    </a>
+                    <a class="{% if current_status == 'responded' %}border-primary text-primary
+                    {% else %}border-transparent text-[#4c739a] hover:text-[#0d141b] hover:border-gray-300
+                    {% endif %} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors"
+                        href="?status=responded">
+                        Responded
+                        <span class="{% if current_status == 'responded' %}bg-blue-50 text-blue-600
+                            {% else %}bg-gray-100 text-gray-600
+                            {% endif %} 
+                            py-0.5 px-2 rounded-full text-xs">
+                            {{responded_count }}</span>
+                    </a>
+                    <a class="{% if current_status == 'resolved' %}border-primary text-primary
+                    {% else %}border-transparent text-[#4c739a] hover:text-[#0d141b] hover:border-gray-300
+                    {% endif %} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors"
+                        href="?status=resolved">
+                        Resolved
+                        <span class="{% if current_status == 'resolved' %}bg-blue-50 text-blue-600
+                            {% else %}bg-gray-100 text-gray-600
+                            {% endif %} 
+                            py-0.5 px-2 rounded-full text-xs">
+                            {{resolved_count }}</span>
+                    </a>
+                </nav>
+            </div>
+            <!-- Main Data Table Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-[#e7edf3] overflow-hidden flex flex-col">
+                {% if complaints %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-[#e7edf3]">
+                        <thead class="bg-gray-50/50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-[#4c739a] uppercase tracking-wider"
+                                    scope="col">Complaint ID</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-[#4c739a] uppercase tracking-wider"
+                                    scope="col">Patient</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-[#4c739a] uppercase tracking-wider"
+                                    scope="col">Subject</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-[#4c739a] uppercase tracking-wider"
+                                    scope="col">Date</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-[#4c739a] uppercase tracking-wider"
+                                    scope="col">Status</th>
+                                <th class="relative px-6 py-4" scope="col">
+                                    <span class="sr-only">Actions</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-[#e7edf3]">
+                            {% for complaint in complaints %}
+                            <tr class="hover:bg-gray-50 transition-colors group">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#0d141b]">
+                                    #{{ complaint.id }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        {% if complaint.user.role == 'patient' %}
+{% if complaint.user.is_anonymous_public and request.user.role != 'superadmin' %}
+                                        <!-- Anonymous View -->
+                                        <div
+                                            class="h-9 w-9 flex-shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-xs">
+                                            <span class="material-symbols-outlined text-[18px]">visibility_off</span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-slate-500 italic">
+                                                Anonymous User
+                                            </div>
+                                            <div class="text-xs text-[#4c739a]">
+                                                Hidden</div>
+                                        </div>
+                                        {% else %}
+                                        <!-- Real User View (Patient but not anon OR Superadmin) -->
+                                        <div
+                                            class="h-9 w-9 flex-shrink-0 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                                            {{ complaint.user.username|slice:":2"|upper }}
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-[#0d141b]">
+                                                {{complaint.user.get_full_name|default:complaint.user.username }}
+                                            </div>
+                                            <div class="text-xs text-[#4c739a]">
+                                                @{{ complaint.user.username }}</div>
+                                        </div>
+                                        {% endif %}
+                                        {% else %}
+                                        <!-- Real User View (Non-Patient) -->
+                                        <div
+                                            class="h-9 w-9 flex-shrink-0 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                                            {{ complaint.user.username|slice:":2"|upper }}
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-[#0d141b]">
+                                                {{complaint.user.get_full_name|default:complaint.user.username }}
+                                            </div>
+                                            <div class="text-xs text-[#4c739a]">
+                                                @{{ complaint.user.username }}</div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-[#0d141b] max-w-[200px] truncate">{{ complaint.title }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-[#4c739a]">{{ complaint.created_at|date:"M d, Y" }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <form action="{% url 'update_complaint_status' complaint.id %}" method="POST"
+                                        class="flex items-center gap-2">
+                                        {% csrf_token %}
+                                        <select name="status" class="text-xs border-none bg-transparent focus:ring-0 cursor-pointer font-medium
+                                            {% if complaint.status == 'new' %}text-blue-800
+                                            {% elif complaint.status == 'review' %}text-amber-800
+                                            {% elif complaint.status == 'responded' %}text-emerald-800
+                                            {% else %}text-teal-800{% endif %}" onchange="this.form.submit()">
+                                            <option value="new" {% if complaint.status == 'new' %}selected
+                                            {% endif %}>New
+                                            </option>
+                                            <option value="review" {% if complaint.status == 'review' %}selected
+                                            {% endif %}>In Review</option>
+                                            <option value="responded" {% if complaint.status == 'responded' %}selected
+                                            {% endif %}>Responded</option>
+                                            <option value="resolved" {% if complaint.status == 'resolved' %}selected
+                                            {% endif %}>Resolved</option>
+                                        </select>
+                                        <span class="w-2 h-2 rounded-full absolute ml-[-12px] mt-[2px] pointer-events-none
+                                            {% if complaint.status == 'new' %}bg-blue-600
+                                            {% elif complaint.status == 'review' %}bg-amber-600
+                                            {% elif complaint.status == 'responded' %}bg-emerald-600
+                                            {% else %}bg-teal-600{% endif %}"></span>
+                                    </form>
+                                </td>
+                                <td
+                                    class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex gap-2 justify-end">
+                                    <a href="{% url 'start_complaint_chat' complaint.id %}" target="_blank"
+                                        class="text-[#4c739a] hover:text-primary transition-colors bg-transparent hover:bg-blue-50 p-2 rounded-full inline-block"
+                                        title="Chat with Patient">
+                                        <span class="material-symbols-outlined text-[20px]">chat</span>
+                                    </a>
+                                    <a href="{% url 'complaint_detail' complaint.id %}"
+                                        class="text-[#4c739a] hover:text-primary transition-colors bg-transparent hover:bg-blue-50 p-2 rounded-full inline-block"
+                                        title="View Details">
+                                        <span class="material-symbols-outlined text-[20px]">visibility</span>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center justify-center py-16 px-4 text-center">
+                    <div class="bg-gray-50 rounded-full p-4 mb-4">
+                        <span class="material-symbols-outlined text-[#4c739a] text-4xl">inbox</span>
+                    </div>
+                    <h3 class="text-lg font-medium text-[#0d141b]">No complaints found</h3>
+                    <p class="mt-1 text-sm text-[#4c739a]">There are no complaints matching your criteria.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

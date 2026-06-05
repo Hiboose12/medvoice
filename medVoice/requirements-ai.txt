@@ -1,0 +1,5 @@
+transformers
+torch
+pillow
+tensorflow  # Optional if using Keras
+tf-keras   # Needed for newer Keras versions

@@ -1,0 +1,84 @@
+{% extends "accounts/admin_base.html" %}
+{% block title %}Access Control{% endblock %}
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-slate-900 dark:text-white">User Verification Panel</h1>
+    <p class="text-slate-500 dark:text-gray-400 mt-1">Review and approve Hospital Admins and Health Authorities.</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+    <div class="bg-white dark:bg-[#1a2632] rounded-xl p-6 shadow border border-[#cfdbe7] dark:border-gray-800">
+        <p class="text-sm text-slate-500 dark:text-gray-400">Total Pending</p>
+        <p class="text-3xl font-bold text-primary mt-1">{{ total_pending }}</p>
+    </div>
+    <div class="bg-white dark:bg-[#1a2632] rounded-xl p-6 shadow border border-[#cfdbe7] dark:border-gray-800">
+        <p class="text-sm text-slate-500 dark:text-gray-400">Hospital Admins</p>
+        <p class="text-3xl font-bold text-blue-600 mt-1">{{ hospital_count }}</p>
+    </div>
+    <div class="bg-white dark:bg-[#1a2632] rounded-xl p-6 shadow border border-[#cfdbe7] dark:border-gray-800">
+        <p class="text-sm text-slate-500 dark:text-gray-400">Health Authorities</p>
+        <p class="text-3xl font-bold text-green-600 mt-1">{{ authority_count }}</p>
+    </div>
+</div>
+
+<div class="bg-white dark:bg-[#1a2632] rounded-xl shadow border border-[#cfdbe7] dark:border-gray-800 overflow-hidden">
+    <div class="px-6 py-4 border-b border-[#cfdbe7] dark:border-gray-800">
+        <h2 class="text-xl font-semibold text-slate-800 dark:text-white">Pending Approvals</h2>
+    </div>
+
+    {% if pending_users %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+            <thead class="bg-slate-100 dark:bg-slate-800/50 text-slate-700 dark:text-gray-300">
+                <tr>
+                    <th class="px-6 py-3 text-left">Applicant</th>
+                    <th class="px-6 py-3 text-left">Role Request</th>
+                    <th class="px-6 py-3 text-left">Applied Date</th>
+                    <th class="px-6 py-3 text-left">Status</th>
+                    <th class="px-6 py-3 text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-[#cfdbe7] dark:divide-gray-800">
+                {% for user in pending_users %}
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <td class="px-6 py-4">
+                        <span class="font-bold text-slate-700 dark:text-white block">{{ user.first_name|default:user.username}}</span>
+                        <span class="text-xs text-slate-500 dark:text-gray-400">{{ user.email }}</span>
+                    </td>
+                    <td class="px-6 py-4 capitalize">
+                        <span class="px-2 py-1 rounded-full text-xs font-bold 
+                            {% if user.role == 'hospital' %}bg-blue-50 text-blue-700 border border-blue-100
+                            {% else %}bg-purple-50 text-purple-700 border border-purple-100{% endif %}">
+                            {{ user.role }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-500 dark:text-gray-400">
+                        {{ user.date_joined|date:"M d, Y" }}
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-100">Pending</span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <a href="{% url 'admin_review_detail' user.id %}"
+                            class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-primary border border-primary/20 hover:bg-primary/10 transition-colors">
+                            View Details
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="p-6 text-center py-20">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-50 mb-4">
+            <span class="material-symbols-outlined text-green-500 text-3xl">check_circle</span>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white">All Caught Up!</h3>
+        <p class="text-slate-500 dark:text-gray-400">No new users pending approval.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block page_scripts %}{% endblock %}

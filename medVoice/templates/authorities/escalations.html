@@ -1,0 +1,94 @@
+{% extends "authorities/authority_base.html" %}
+{% load static %}
+
+{% block title %}Escalations - Health Authority{% endblock %}
+
+{% block header_title %}Escalated Complaints{% endblock %}
+{% block header_subtitle %}Complaints requiring immediate attention due to hospital inaction{% endblock %}
+
+{% block content %}
+{% if escalated_count > 0 %}
+<div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+    <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-red-600 text-xl">warning</span>
+        <span class="text-red-700 font-medium">{{ escalated_count }} complaints require your attention</span>
+    </div>
+</div>
+{% endif %}
+
+<!-- Escalated Complaints Table -->
+<div class="bg-white rounded-xl border border-red-200 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-red-50 border-b border-red-200">
+                <tr>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-red-700 uppercase tracking-wider">ID</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-red-700 uppercase tracking-wider">Hospital</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-red-700 uppercase tracking-wider">Title</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-red-700 uppercase tracking-wider">Severity</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-red-700 uppercase tracking-wider">Escalated</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-red-700 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-4 text-right text-xs font-semibold text-red-700 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-red-100">
+                {% for complaint in complaints %}
+                <tr class="hover:bg-red-50 transition-colors">
+                    <td class="px-6 py-4">
+                        <span class="text-sm font-mono font-medium text-text-main">#{{ complaint.id }}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-red-600 text-sm">domain</span>
+                            </div>
+                            <span class="text-sm font-medium text-text-main">{{ complaint.hospital_name }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="text-sm text-text-main max-w-[200px] truncate block">{{ complaint.title }}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if complaint.severity == 'high' %}bg-red-100 text-red-700
+                            {% elif complaint.severity == 'medium' %}bg-amber-100 text-amber-700
+                            {% else %}bg-teal-100 text-teal-700{% endif %}">
+                            {{ complaint.get_severity_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="text-sm text-text-muted">{{ complaint.escalated_at|timesince }} ago</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if complaint.status == 'resolved' %}bg-emerald-100 text-emerald-700
+                            {% else %}bg-amber-100 text-amber-700{% endif %}">
+                            {{ complaint.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex justify-end gap-2">
+                            <a href="{% url 'authority_complaint_detail' complaint.id %}" 
+                                class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors">
+                                <span class="material-symbols-outlined text-sm">visibility</span>
+                                Review
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center">
+                            <span class="material-symbols-outlined text-5xl text-emerald-300">check_circle</span>
+                            <p class="text-text-muted mt-4">No escalated complaints</p>
+                            <p class="text-sm text-text-muted">All hospitals are responding in a timely manner</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

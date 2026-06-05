@@ -1,0 +1,230 @@
+{% extends "accounts/admin_base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center gap-2 text-sm text-text-muted dark:text-gray-400">
+    <a class="hover:text-primary transition-colors" href="{% url 'admin_dashboard' %}">Home</a>
+    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+    <span class="font-medium text-text-main dark:text-white">Dashboard</span>
+</div>
+
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div>
+        <h1 class="text-text-main dark:text-white text-3xl font-bold leading-tight tracking-tight">Super Admin Dashboard</h1>
+        <p class="text-text-muted dark:text-gray-400 text-base font-normal mt-1">Real-time overview of platform performance and critical alerts.</p>
+    </div>
+    <div class="flex gap-3">
+        <a href="{% url 'admin_performance' %}?range=30"
+            class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1a2632] border border-[#cfdbe7] dark:border-gray-700 rounded-lg text-sm font-medium text-text-main dark:text-white shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span>
+            Last 30 Days
+        </a>
+        <a href="{% url 'admin_performance' %}?export=1"
+            class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium shadow-sm hover:bg-blue-600 transition-colors">
+            <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
+            Export Report
+        </a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+    <div class="flex flex-col gap-4 rounded-xl p-6 bg-white dark:bg-[#1a2632] border border-[#cfdbe7] dark:border-gray-800 shadow-sm">
+        <div class="flex justify-between items-start">
+            <div class="flex items-center justify-center size-10 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-primary">
+                <span class="material-symbols-outlined" style="font-size: 24px;">group</span>
+            </div>
+            <span class="flex items-center gap-1 text-[#078838] bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded text-xs font-medium">
+                <span class="material-symbols-outlined" style="font-size: 14px;">trending_up</span>
+                +5%
+            </span>
+        </div>
+        <div>
+            <p class="text-text-muted dark:text-gray-400 text-sm font-medium leading-normal mb-1">Total Users</p>
+            <p class="text-text-main dark:text-white text-2xl font-bold leading-tight">{{ total_users }}</p>
+        </div>
+    </div>
+    <div class="flex flex-col gap-4 rounded-xl p-6 bg-white dark:bg-[#1a2632] border border-[#cfdbe7] dark:border-gray-800 shadow-sm relative overflow-hidden">
+        <div class="absolute left-0 top-0 bottom-0 w-1 bg-amber-500"></div>
+        <div class="flex justify-between items-start">
+            <div class="flex items-center justify-center size-10 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+                <span class="material-symbols-outlined" style="font-size: 24px;">pending_actions</span>
+            </div>
+            <span class="flex items-center gap-1 text-amber-700 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded text-xs font-medium">
+                Action Req.
+            </span>
+        </div>
+        <div>
+            <p class="text-text-muted dark:text-gray-400 text-sm font-medium leading-normal mb-1">Pending Approvals</p>
+            <p class="text-text-main dark:text-white text-2xl font-bold leading-tight">{{ pending_approvals_count }}</p>
+        </div>
+    </div>
+    <div class="flex flex-col gap-4 rounded-xl p-6 bg-white dark:bg-[#1a2632] border border-[#cfdbe7] dark:border-gray-800 shadow-sm">
+        <div class="flex justify-between items-start">
+            <div class="flex items-center justify-center size-10 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400">
+                <span class="material-symbols-outlined" style="font-size: 24px;">report_problem</span>
+            </div>
+        </div>
+        <div>
+            <p class="text-text-muted dark:text-gray-400 text-sm font-medium leading-normal mb-1">Total Complaints</p>
+            <p class="text-text-main dark:text-white text-2xl font-bold leading-tight">{{ total_complaints }}</p>
+        </div>
+    </div>
+    <div class="flex flex-col gap-4 rounded-xl p-6 bg-white dark:bg-[#1a2632] border border-[#cfdbe7] dark:border-gray-800 shadow-sm">
+        <div class="flex justify-between items-start">
+            <div class="flex items-center justify-center size-10 rounded-lg bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                <span class="material-symbols-outlined" style="font-size: 24px;">travel_explore</span>
+            </div>
+            <span class="flex items-center gap-1 text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-xs font-medium">
+                Stable
+            </span>
+        </div>
+        <div>
+            <p class="text-text-muted dark:text-gray-400 text-sm font-medium leading-normal mb-1">Active Investigations</p>
+            <p class="text-text-main dark:text-white text-2xl font-bold leading-tight">{{ active_investigations }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+    <div class="xl:col-span-2 flex flex-col gap-8">
+        <div class="flex flex-col rounded-xl bg-white dark:bg-[#1a2632] border border-[#cfdbe7] dark:border-gray-800 shadow-sm overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-[#cfdbe7] dark:border-gray-800">
+                <h2 class="text-text-main dark:text-white text-lg font-bold leading-tight">Pending Provider Approvals</h2>
+                <a class="text-primary text-sm font-medium hover:underline" href="{% url 'approve_users' %}">View all</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 dark:bg-slate-800/50">
+                            <th class="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-text-muted dark:text-gray-400">User</th>
+                            <th class="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-text-muted dark:text-gray-400">Role</th>
+                            <th class="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-text-muted dark:text-gray-400">Date Joined</th>
+                            <th class="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-text-muted dark:text-gray-400 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#cfdbe7] dark:divide-gray-800">
+                        {% for user in recent_approvals %}
+                        <tr>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="bg-primary/10 text-primary flex items-center justify-center rounded-full size-8">
+                                        <span class="material-symbols-outlined text-sm">person</span>
+                                    </div>
+                                    <p class="text-sm font-medium text-text-main dark:text-white">
+                                        {{ user.first_name|default:user.username }}
+                                    </p>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-text-muted dark:text-gray-400 capitalize">{{ user.role }}</td>
+                            <td class="px-6 py-4 text-sm text-text-muted dark:text-gray-400">{{ user.date_joined|date:"M d, Y" }}</td>
+                            <td class="px-6 py-4 text-right">
+                                <a href="{% url 'approve_users' %}" class="text-primary hover:text-blue-700 font-medium text-sm mr-3">Review</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-8 text-center text-text-muted dark:text-gray-500">
+                                No pending approvals.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="flex flex-col rounded-xl bg-white dark:bg-[#1a2632] border border-[#cfdbe7] dark:border-gray-800 shadow-sm overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-[#cfdbe7] dark:border-gray-800">
+                <h2 class="text-text-main dark:text-white text-lg font-bold leading-tight">Recent Complaints</h2>
+                <a class="text-primary text-sm font-medium hover:underline" href="{% url 'admin_categories' %}">View all</a>
+            </div>
+            <div class="flex flex-col">
+                {% for complaint in recent_complaints %}
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border-b border-[#cfdbe7] dark:border-gray-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <div class="flex items-start gap-3">
+                        <div class="mt-1 {% if complaint.severity == 'high' %}bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400{% elif complaint.severity == 'medium' %}bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400{% else %}bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400{% endif %} p-2 rounded-lg shrink-0">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">
+                                {% if complaint.severity == 'high' %}priority_high{% elif complaint.severity == 'medium' %}timer{% else %}check_circle{% endif %}
+                            </span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-text-main dark:text-white">{{ complaint.title }}</p>
+                            <p class="text-xs text-text-muted dark:text-gray-400 mt-1">{{ complaint.description|truncatewords:10 }}</p>
+                            <p class="text-xs text-text-muted dark:text-gray-400 mt-1">Reported by {{ complaint.user.username }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-medium 
+                            {% if complaint.status == 'new' %}bg-blue-50 text-blue-700 border border-blue-100 dark:bg-blue-900/20 dark:text-blue-300
+                            {% elif complaint.status == 'review' %}bg-amber-50 text-amber-700 border border-amber-100 dark:bg-amber-900/20 dark:text-amber-300
+                            {% else %}bg-green-50 text-green-700 border border-green-100 dark:bg-green-900/20 dark:text-green-300{% endif %}">
+                            {{ complaint.get_status_display }}
+                        </span>
+                        <p class="text-xs text-text-muted dark:text-gray-500">{{ complaint.created_at|timesince }} ago</p>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="p-6 text-center text-text-muted dark:text-gray-500">
+                    No recent complaints.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="flex flex-col gap-6">
+        <div class="flex flex-col rounded-xl bg-white dark:bg-[#1a2632] border border-[#cfdbe7] dark:border-gray-800 shadow-sm p-6 h-fit">
+            <h2 class="text-text-main dark:text-white text-lg font-bold leading-tight mb-5">Platform Activity</h2>
+            <div class="relative pl-4 border-l border-[#cfdbe7] dark:border-gray-700 space-y-8">
+                <div class="relative">
+                    <div class="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-white dark:ring-[#1a2632]"></div>
+                    <p class="text-xs text-text-muted dark:text-gray-500 mb-1">10 min ago</p>
+                    <p class="text-sm text-text-main dark:text-white font-medium">New provider registration</p>
+                    <p class="text-sm text-text-muted dark:text-gray-400 mt-0.5">Dr. Alan Grant completed profile setup.</p>
+                </div>
+                <div class="relative">
+                    <div class="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-4 ring-white dark:ring-[#1a2632]"></div>
+                    <p class="text-xs text-text-muted dark:text-gray-500 mb-1">45 min ago</p>
+                    <p class="text-sm text-text-main dark:text-white font-medium">Complaint resolved</p>
+                    <p class="text-sm text-text-muted dark:text-gray-400 mt-0.5">Ticket #4890 marked as resolved by Admin Team.</p>
+                </div>
+                <div class="relative">
+                    <div class="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-blue-400 ring-4 ring-white dark:ring-[#1a2632]"></div>
+                    <p class="text-xs text-text-muted dark:text-gray-500 mb-1">2 hours ago</p>
+                    <p class="text-sm text-text-main dark:text-white font-medium">System Backup</p>
+                    <p class="text-sm text-text-muted dark:text-gray-400 mt-0.5">Automated daily backup completed successfully.</p>
+                </div>
+                <div class="relative">
+                    <div class="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-amber-500 ring-4 ring-white dark:ring-[#1a2632]"></div>
+                    <p class="text-xs text-text-muted dark:text-gray-500 mb-1">4 hours ago</p>
+                    <p class="text-sm text-text-main dark:text-white font-medium">Complaint Escalation</p>
+                    <p class="text-sm text-text-muted dark:text-gray-400 mt-0.5">Ticket #4915 escalated to Investigation.</p>
+                </div>
+            </div>
+            <a href="{% url 'admin_performance' %}"
+                class="w-full mt-6 py-2 text-sm text-text-muted font-medium hover:text-primary transition-colors border-t border-[#cfdbe7] dark:border-gray-800 pt-4 text-center">
+                View Full History
+            </a>
+        </div>
+        <div class="rounded-xl bg-slate-900 text-white p-5 shadow-sm bg-gradient-to-br from-slate-900 to-slate-800">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-sm">System Status</h3>
+                <span class="flex h-2.5 w-2.5 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                </span>
+            </div>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-400">Server Load</span>
+                    <span class="font-mono">24%</span>
+                </div>
+                <div class="w-full bg-slate-700 rounded-full h-1.5">
+                    <div class="bg-green-500 h-1.5 rounded-full" style="width: 24%"></div>
+                </div>
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-400">Database</span>
+                    <span class="font-mono text-green-400">Operational</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

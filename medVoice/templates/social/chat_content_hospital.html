@@ -1,0 +1,238 @@
+<div class="flex h-[calc(100vh-0px)] px-6 md:px-10 py-6 bg-surface">
+
+  <!-- Conversations list -->
+  <section
+    class="hidden md:flex w-[320px] flex-shrink-0 bg-white border border-zinc-200 rounded-2xl shadow-soft mr-6 flex-col">
+    <div class="p-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/60 rounded-t-2xl">
+      <h2 class="text-xl font-black text-text-main tracking-tight">Hospital Chats</h2>
+      <div class="flex gap-2">
+        <button id="new-chat-btn" class="p-2 hover:bg-zinc-100 rounded-full text-text-muted transition-colors"
+          title="New Chat">
+          <span class="material-symbols-outlined">add_comment</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="p-4 pb-2">
+      <div class="relative group">
+        <span
+          class="material-symbols-outlined absolute left-3 top-2.5 text-zinc-400 group-focus-within:text-primary transition-colors">search</span>
+        <input type="text" id="user-search-input"
+          class="w-full bg-zinc-100 border-none rounded-xl pl-10 pr-4 h-11 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-zinc-500 transition-all focus:bg-white"
+          placeholder="Search or start new chat..." autocomplete="off">
+        <div id="search-results"
+          class="absolute top-12 left-0 right-0 bg-white shadow-2xl border border-zinc-100 rounded-xl hidden z-50 max-h-80 overflow-y-auto">
+        </div>
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto">
+      {% for convo in conversations %}
+      <a href="{% url 'hospital_chat_room' convo.id %}"
+        class="flex items-center gap-4 p-4 hover:bg-zinc-50 cursor-pointer border-b border-zinc-50 transition-colors {% if convo == active_conversation %} bg-blue-50/60 border-l-4 border-primary {% endif %}">
+        <div class="relative flex-shrink-0">
+          <div
+            class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-sm overflow-hidden">
+            {% if convo.complaint %}
+            <span class="material-symbols-outlined text-2xl">folder</span>
+            {% else %}
+            {% with p=convo.participants.all|first %}
+            {% if convo.participants.count > 1 %}
+            {% for part in convo.participants.all %}
+            {% if part != request.user %}{% with p=part %}{% endwith %}{% endif %}
+            {% endfor %}
+            {% endif %}
+
+            {% if p.role == 'patient' and p.is_anonymous_public and request.user.role != 'superadmin' %}
+            <span class="material-symbols-outlined text-2xl">person_outline</span>
+            {% elif p.safe_photo_url %}
+            <img src="{{ p.safe_photo_url }}" class="w-full h-full object-cover">
+            {% else %}
+            <span class="material-symbols-outlined text-2xl">person</span>
+            {% endif %}
+            {% endwith %}
+            {% endif %}
+          </div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex justify-between items-baseline mb-0.5">
+            <h3 class="text-sm font-bold text-text-main truncate">
+              {% for p in convo.participants.all %}
+              {% if p != request.user %}
+              {% if p.role == 'patient' and p.is_anonymous_public and request.user.role != 'superadmin' %}
+              Anonymous User
+              {% else %}
+              {{ p.get_full_name|default:p.username }}
+              {% endif %}
+              {% endif %}
+              {% endfor %}
+            </h3>
+            {% if convo.complaint %}
+            <div class="flex items-center gap-1 text-[10px] text-primary font-medium">
+              <span class="material-symbols-outlined text-[10px]">folder</span>
+              <span class="truncate max-w-[150px]">{{ convo.complaint.title }}</span>
+            </div>
+            {% endif %}
+          </div>
+          <p class="text-xs text-text-muted truncate">
+            {% with last_msg=convo.messages.last %}
+            {% if last_msg %}
+            {% if last_msg.sender == request.user %}<span class="text-primary">You:</span>{% endif %}
+            {{ last_msg.content|default:"Sent an attachment" }}
+            {% else %}
+            Tap to start chatting
+            {% endif %}
+            {% endwith %}
+          </p>
+        </div>
+        {% if convo.unread_count > 0 %}
+        <div class="flex-shrink-0 flex flex-col items-end justify-center gap-1">
+          <span class="text-[10px] font-bold text-green-500">{{ convo.updated_at|date:"H:i" }}</span>
+          <span
+            class="w-5 h-5 bg-green-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-sm leading-none">
+            {{ convo.unread_count }}
+          </span>
+        </div>
+        {% else %}
+        <div class="flex-shrink-0 flex flex-col items-end justify-center gap-1">
+          <span class="text-[10px] text-zinc-400 font-medium">{{ convo.updated_at|date:"H:i" }}</span>
+        </div>
+        {% endif %}
+      </a>
+      {% empty %}
+      <div class="flex flex-col items-center justify-center h-40 text-center px-6 mt-6">
+        <div class="w-14 h-14 bg-zinc-100 rounded-full flex items-center justify-center mb-3 text-zinc-300">
+          <span class="material-symbols-outlined text-3xl">chat_bubble_outline</span>
+        </div>
+        <p class="text-text-muted font-medium text-sm">No messages yet.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Chat window -->
+  <main class="flex-1 bg-white border border-zinc-200 rounded-2xl shadow-soft flex flex-col overflow-hidden">
+    {% if active_conversation %}
+    <header class="h-[72px] bg-white border-b border-zinc-200 flex items-center justify-between px-4 md:px-6">
+      <div class="flex items-center gap-3">
+        <div
+          class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold shadow-sm overflow-hidden">
+          {% if active_conversation.complaint %}
+          <span class="material-symbols-outlined">folder_open</span>
+          {% else %}
+          {% with p=active_conversation.participants.all|first %}
+          {% if active_conversation.participants.count > 1 %}
+          {% for part in active_conversation.participants.all %}
+          {% if part != request.user %}{% with p=part %}{% endwith %}{% endif %}
+          {% endfor %}
+          {% endif %}
+
+          {% if p.role == 'patient' and p.is_anonymous_public and request.user.role != 'superadmin' %}
+          <span class="material-symbols-outlined">person_outline</span>
+          {% elif p.safe_photo_url %}
+          <img src="{{ p.safe_photo_url }}" class="w-full h-full object-cover">
+          {% else %}
+          <span class="material-symbols-outlined">person</span>
+          {% endif %}
+          {% endwith %}
+          {% endif %}
+        </div>
+        <div>
+          <h2 class="text-base font-bold text-text-main leading-tight">
+            {% for p in active_conversation.participants.all %}
+            {% if p != request.user %}
+            {% if p.role == 'patient' and p.is_anonymous_public and request.user.role != 'superadmin' %}
+            Anonymous User
+            {% else %}
+            {{ p.get_full_name|default:p.username }}
+            {% endif %}
+            {% endif %}
+            {% endfor %}
+          </h2>
+          {% if active_conversation.complaint %}
+          <div class="text-xs text-primary font-medium flex items-center gap-1">
+            <span class="material-symbols-outlined text-[12px]">folder_open</span>
+            Complaint: {{ active_conversation.complaint.title }}
+          </div>
+          {% endif %}
+          <div id="online-status-indicator" class="text-xs text-zinc-400 font-medium flex items-center gap-1">
+            <span class="w-1.5 h-1.5 bg-zinc-300 rounded-full"></span> Offline
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div id="messages-container" class="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col gap-3 bg-surface">
+      {% for msg in messages %}
+      <div
+        class="flex flex-col gap-1 max-w-[85%] md:max-w-[70%] {% if msg.sender == request.user %} items-end self-end {% else %} items-start {% endif %}"
+        data-id="{{ msg.id }}">
+        <div class="px-4 py-2 shadow-sm text-[15px] leading-relaxed relative
+            {% if msg.sender == request.user %} bg-primary text-white rounded-2xl rounded-tr-none
+            {% else %} bg-white text-text-main rounded-2xl rounded-tl-none border border-zinc-100 {% endif %}">
+          {% if msg.attachment %}
+          <a href="{{ msg.attachment.url }}" target="_blank" class="block mb-2">
+            <img src="{{ msg.attachment.url }}" class="max-w-full md:max-w-[240px] rounded-lg border border-black/10">
+          </a>
+          {% endif %}
+          <span class="whitespace-pre-wrap block break-words">{{ msg.content }}</span>
+          <div class="flex items-center justify-end gap-1 mt-1 opacity-80 min-w-[50px] text-[10px] font-medium">
+            {{ msg.created_at|time:"g:i A" }}
+            {% if msg.sender == request.user %}
+            {% if not msg.is_read %}
+            <button onclick="deleteMessage({{ msg.id }})" class="text-white/70 hover:text-white transition-colors ml-1"
+              title="Delete message">
+              <span class="material-symbols-outlined text-[14px]"
+                style="font-size: 14px; vertical-align: middle;">delete</span>
+            </button>
+            {% endif %}
+            <span class="material-symbols-outlined text-[14px] msg-tick" data-msg-id="{{ msg.id }}"
+              style="font-size: 14px; vertical-align: middle;">done_all</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="flex flex-col items-center justify-center h-full opacity-70">
+        <div class="bg-zinc-100 p-6 rounded-full mb-4">
+          <span class="material-symbols-outlined text-4xl text-zinc-400">forum</span>
+        </div>
+        <p class="text-sm text-text-muted font-medium">No messages here yet.</p>
+        <p class="text-xs text-zinc-400 mt-1">Send a message to start the conversation!</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <footer class="p-4 bg-white border-t border-zinc-200">
+      <form id="chat-form" class="max-w-4xl mx-auto flex items-end gap-2" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" id="file-input" name="attachment" class="hidden">
+        <button type="button" id="attach-btn"
+          class="p-3 text-text-muted hover:text-primary hover:bg-zinc-50 rounded-full transition-all"
+          title="Attach File">
+          <span class="material-symbols-outlined text-[24px] rotate-45">attach_file</span>
+        </button>
+        <div
+          class="flex-1 bg-zinc-100 rounded-2xl flex items-center px-4 py-2 focus-within:ring-2 focus-within:ring-primary/20 focus-within:bg-white transition-all border border-transparent focus-within:border-primary/30">
+          <input id="chat-input" name="content" autocomplete="off"
+            class="w-full bg-transparent border-none focus:ring-0 text-text-main placeholder:text-zinc-400 h-10 resize-none py-2"
+            placeholder="Type a message...">
+        </div>
+        <button type="submit"
+          class="p-3 bg-primary text-white rounded-full shadow-lg shadow-primary/30 hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all flex items-center justify-center">
+          <span class="material-symbols-outlined text-[22px] ml-0.5">send</span>
+        </button>
+      </form>
+    </footer>
+    {% else %}
+    <div class="flex-1 flex flex-col items-center justify-center bg-surface text-center">
+      <div class="w-32 h-32 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm">
+        <span class="material-symbols-outlined text-5xl text-primary">chat</span>
+      </div>
+      <h2 class="text-3xl font-black text-text-main mb-3">Hospital Chat</h2>
+      <p class="text-text-muted max-w-md leading-relaxed">Select a conversation to continue or start a new secure chat.
+      </p>
+    </div>
+    {% endif %}
+  </main>
+</div>

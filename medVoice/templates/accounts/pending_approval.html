@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Stitch AI HTML -->
+ <!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Account Approval Pending - MedVoice</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800;900&amp;family=Noto+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0d141b] dark:text-white antialiased flex flex-col min-h-screen">
+<header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e7edf3] dark:border-b-gray-800 bg-white dark:bg-[#1a2632] px-6 md:px-10 py-3 shadow-sm">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+{% include "includes/medvoice_logo.html" %}
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+<span class="hidden sm:inline">Logged in as</span>
+<span class="font-bold text-gray-900 dark:text-white">Dr. Sarah Jenkins</span>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-9 border border-gray-200 dark:border-gray-700 ml-2" data-alt="User profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCU2_MiSOHz2ejXUBFHbg2rqsbX2_JFW9YI-z3ZjhGrGT4bVfuvDyvS7dTO8nMxZQpOssAntCjeaqoB2rymVDvBe63tk5WWkXBeRvR4OwUCeSTiwJXVx02a8-ZWwcBMcA32TIrZK4R49NMJJ-g4Cr4A_BOpGOOL35hd7JYQs7iVqWkNmwvoJwg_S-YYxshLRiik8JTsBRbqbAPcskSkzTEkLWYSq4h4BN3yO9kGVDhyanbTnC0iv3HiKA7yo38tvAzbBThzVm3wzWU");'></div>
+</div>
+</header>
+<main class="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+<div class="w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#cfdbe7] dark:border-gray-700 overflow-hidden">
+<div class="h-2 w-full bg-gradient-to-r from-yellow-400 to-amber-500"></div>
+<div class="p-8 flex flex-col items-center text-center">
+<div class="mb-6 relative">
+<div class="w-20 h-20 bg-amber-50 dark:bg-amber-900/20 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[40px] text-amber-600 dark:text-amber-500">hourglass_top</span>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-white dark:bg-gray-800 rounded-full p-1">
+<span class="material-symbols-outlined text-2xl text-primary">verified_user</span>
+</div>
+</div>
+<h1 class="text-2xl font-black text-[#0d141b] dark:text-white mb-2 tracking-tight">Account Approval Pending</h1>
+<div class="mb-6">
+<span class="inline-flex items-center gap-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 px-3 py-1 text-sm font-bold text-amber-700 dark:text-amber-400">
+<span class="relative flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+</span>
+                        Pending Review
+                    </span>
+</div>
+<p class="text-[#4c739a] dark:text-gray-300 text-base leading-relaxed mb-8">
+                    Your account has been successfully created and is currently under review by the MedVoice Super Admin. You will be able to access the platform once your documents are verified.
+                </p>
+<div class="w-full bg-gray-50 dark:bg-gray-700/30 rounded-lg p-5 text-left border border-gray-100 dark:border-gray-700 mb-8">
+<h3 class="text-xs font-bold text-[#4c739a] dark:text-gray-400 uppercase tracking-wider mb-4">What happens next?</h3>
+<ul class="space-y-3">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-[20px] text-primary mt-0.5">fact_check</span>
+<span class="text-sm font-medium text-[#0d141b] dark:text-gray-200">Submitted documents are being verified</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-[20px] text-primary mt-0.5">schedule</span>
+<span class="text-sm font-medium text-[#0d141b] dark:text-gray-200">This process may take 24–48 hours</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-[20px] text-primary mt-0.5">notifications_active</span>
+<span class="text-sm font-medium text-[#0d141b] dark:text-gray-200">You will be notified via email once approved</span>
+</li>
+</ul>
+</div>
+<div class="flex flex-col gap-4 w-full">
+<a href="{% url 'logout' %}"
+   class="px-4 py-2 bg-red-500 text-white rounded">
+    Logout
+</a>     
+<a class="text-sm font-bold text-[#4c739a] dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors flex items-center justify-center gap-1" href="#">
+<span class="material-symbols-outlined text-[18px]">support_agent</span>
+                        Contact Support
+                    </a>
+</div>
+</div>
+</div>
+</main>
+<footer class="py-6 text-center text-sm text-[#4c739a] dark:text-gray-500">
+        © 2024 MedVoice. All rights reserved.
+    </footer>
+
+</body></html>
+{% endblock %}

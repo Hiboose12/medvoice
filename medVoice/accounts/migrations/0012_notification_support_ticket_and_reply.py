@@ -1,0 +1,36 @@
+from django.db import migrations, models
+import django.db.models.deletion
+from django.conf import settings
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ("accounts", "0011_phoneverification"),
+        ("social", "0004_supportticket"),
+    ]
+
+    operations = [
+        migrations.AddField(
+            model_name="notification",
+            name="support_ticket",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="notifications",
+                to="social.supportticket",
+            ),
+        ),
+        migrations.CreateModel(
+            name="PatientNotificationReply",
+            fields=[
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("message", models.TextField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("notification", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="patient_replies", to="accounts.notification")),
+                ("support_ticket", models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="patient_replies", to="social.supportticket")),
+                ("user", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="notification_replies", to=settings.AUTH_USER_MODEL)),
+            ],
+        ),
+    ]

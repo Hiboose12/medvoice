@@ -1,0 +1,47 @@
+{% extends "authorities/authority_base.html" %}
+{% load static %}
+
+{% block title %}Chat - {{ conversation.subject }}{% endblock %}
+
+{% block header_title %}{{ conversation.subject }}{% endblock %}
+{% block header_subtitle %}Conversation with {{ conversation.participant.username }}{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl border border-zinc-200 overflow-hidden" style="height: calc(100vh - 200px);">
+    <!-- Messages Area -->
+    <div class="flex-1 overflow-y-auto p-6 space-y-4" style="height: calc(100% - 80px);">
+        {% for message in messages %}
+        <div class="flex {% if message.sender == request.user %}justify-end{% endif %}">
+            <div class="max-w-[70%] {% if message.sender == request.user %}bg-primary text-white{% else %}bg-zinc-100{% endif %} rounded-xl p-4">
+                <p class="{% if message.sender == request.user %}text-white{% else %}text-text-main{% endif %}">
+                    {{ message.message }}
+                </p>
+                <p class="text-xs {% if message.sender == request.user %}text-blue-200{% else %}text-text-muted{% endif %} mt-2">
+                    {{ message.created_at|date:"M d, Y h:i A" }}
+                </p>
+            </div>
+        </div>
+        {% empty %}
+        <div class="flex items-center justify-center h-full">
+            <div class="text-center">
+                <span class="material-symbols-outlined text-5xl text-zinc-300">chat</span>
+                <p class="text-text-muted mt-4">No messages yet</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Message Input -->
+    <div class="border-t border-zinc-200 p-4">
+        <form method="post" class="flex gap-4">
+            {% csrf_token %}
+            <input type="text" name="message" placeholder="Type your message..." 
+                class="flex-1 px-4 py-2 border border-zinc-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                required>
+            <button type="submit" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                <span class="material-symbols-outlined">send</span>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

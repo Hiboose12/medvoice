@@ -1,0 +1,1305 @@
+{% extends 'patients/patient_base.html' %}
+
+{% block title %}Community Feed{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-8 px-4">
+    <header class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10 px-2">
+        <div>
+            <h2 class="text-3xl font-black tracking-tight text-text-main">Community Feed</h2>
+            <p class="text-text-muted mt-2 text-sm">Browse and interact with shared healthcare complaints anonymously.
+            </p>
+        </div>
+        <div class="relative">
+            <form method="get">
+                <input name="q" value="{{ request.GET.q }}"
+                    class="pl-10 pr-4 py-2 bg-white border border-zinc-200 rounded-xl text-sm focus:ring-primary focus:border-primary w-64 outline-none transition-all"
+                    placeholder="Search complaints..." type="text" />
+            </form>
+            <span class="material-symbols-outlined absolute left-3 top-2 text-text-muted text-xl">search</span>
+        </div>
+    </header>
+
+    <div class="space-y-6 pb-20 px-2">
+        <div
+            class="bg-white rounded-xl border border-zinc-100 shadow-lg p-4 mb-6 transition-all duration-300 hover:shadow-xl">
+            <div class="flex gap-4 mb-3">
+                {% if request.user.profile.photo %}
+                <img src="{{ request.user.profile.photo.url }}" alt="Profile"
+                    class="size-12 rounded-full object-cover border border-zinc-100">
+                {% else %}
+                <div
+                    class="size-12 rounded-full bg-blue-50 flex items-center justify-center text-primary font-bold text-lg shadow-sm">
+                    {{ request.user.username.0|upper }}
+                </div>
+                {% endif %}
+
+                <button onclick="openUploadModal()"
+                    class="flex-1 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 rounded-full px-5 flex items-center text-text-muted transition-colors text-sm font-medium text-left">
+                    Start a complaint...
+                </button>
+            </div>
+
+            <div class="flex justify-between items-center pt-2 px-2">
+                <a href="{% url 'upload' %}"
+                    class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-zinc-50 text-text-muted hover:text-text-main transition-colors">
+                    <span class="material-symbols-outlined text-blue-500">image</span>
+                    <span class="text-sm font-medium">Media</span>
+                </a>
+                <a href="{% url 'upload' %}"
+                    class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-zinc-50 text-text-muted hover:text-text-main transition-colors">
+                    <span class="material-symbols-outlined text-amber-500">category</span>
+                    <span class="text-sm font-medium">Category</span>
+                </a>
+                <a href="{% url 'upload' %}"
+                    class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-zinc-50 text-text-muted hover:text-text-main transition-colors">
+                    <span class="material-symbols-outlined text-red-500">campaign</span>
+                    <span class="text-sm font-medium">Urgent</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- 👻 Ghost Card (Optimistic UI) -->
+        <div id="ghost-card"
+            class="hidden bg-white rounded-2xl shadow-lg border border-zinc-100 overflow-hidden mb-8 animate-pulse">
+            <div class="p-6">
+                <div class="flex gap-3 mb-5">
+                    <div class="size-10 rounded-full bg-zinc-200"></div>
+                    <div class="flex-1 space-y-2">
+                        <div class="h-4 bg-zinc-200 rounded w-1/3"></div>
+                        <div class="h-3 bg-zinc-100 rounded w-1/4"></div>
+                    </div>
+                </div>
+                <div class="space-y-2 mb-4">
+                    <div class="h-4 bg-zinc-100 rounded w-3/4"></div>
+                    <div class="h-4 bg-zinc-100 rounded w-full"></div>
+                    <div class="h-4 bg-zinc-100 rounded w-5/6"></div>
+                </div>
+
+                <!-- Image Preview Area -->
+                <div
+                    class="relative w-full h-64 bg-zinc-100 rounded-xl overflow-hidden flex items-center justify-center mb-4">
+                    <img id="ghost-image-preview"
+                        class="absolute inset-0 w-full h-full object-cover opacity-50 filter blur-sm transition-all duration-700">
+                    <div class="z-10 flex flex-col items-center gap-2">
+                        <div class="size-12 rounded-full border-4 border-primary border-t-transparent animate-spin">
+                        </div>
+                        <p class="text-xs font-bold text-primary uppercase tracking-wider" id="ghost-status-text">
+                            Analyzing Content...</p>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-zinc-200">
+                        <div id="ghost-progress-bar" class="h-full bg-primary transition-all duration-300"
+                            style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Error Overlay (Hidden by default) -->
+                <div id="ghost-error-overlay"
+                    class="hidden bg-red-50 border border-red-100 rounded-xl p-4 flex gap-3 text-red-700">
+                    <span class="material-symbols-outlined">error</span>
+                    <div class="flex-1">
+                        <p class="font-bold text-sm">Upload Failed</p>
+                        <p class="text-xs mt-1" id="ghost-error-message">Content validation failed.</p>
+                        <button onclick="hideGhostCard()" class="text-xs font-bold underline mt-2">Dismiss</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if users %}
+        <div class="mb-8">
+            <h3 class="text-xl font-bold mb-4 text-text-main">People</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for user in users %}
+                <div
+                    class="bg-white p-4 rounded-xl shadow-lg border border-zinc-100 flex items-center gap-4 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div
+                        class="size-12 rounded-full bg-blue-50 flex items-center justify-center text-primary font-bold text-lg shadow-sm">
+                        {{ user.username.0|upper }}
+                    </div>
+                    <div>
+                        <p class="font-bold text-text-main">{{ user.get_full_name|default:user.username }}</p>
+                        <p class="text-xs text-text-muted capitalize">{{ user.role }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if query %}
+        <h3 class="text-xl font-bold mb-4 text-text-main">Complaints</h3>
+        {% endif %}
+
+        {% for complaint in complaints %}
+        <article
+            class="bg-white rounded-2xl shadow-lg border border-zinc-100 overflow-hidden hover:shadow-xl transition-all duration-300"
+            id="complaint-{{ complaint.id }}">
+            <div class="p-6">
+                <div class="flex justify-between mb-5">
+                    <div class="flex gap-3">
+                        {% if complaint.user.is_anonymous_public and request.user.role != 'superadmin' %}
+                        <div class="size-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400">
+                            <span class="material-symbols-outlined text-[20px]">visibility_off</span>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <p class="text-sm font-bold text-zinc-600">Anonymous User</p>
+                                <span
+                                    class="bg-zinc-100 text-zinc-500 text-[10px] px-1.5 py-0.5 rounded font-medium border border-zinc-200">Hidden</span>
+                            </div>
+                            <p class="text-xs text-text-muted">{{ complaint.created_at|date:"M d, Y · h:i A" }}</p>
+                        </div>
+                        {% else %}
+                        {% if complaint.user.profile.photo %}
+                        <img src="{{ complaint.user.profile.photo.url }}"
+                            class="size-10 rounded-full object-cover border border-zinc-100">
+                        {% else %}
+                        <div
+                            class="size-10 rounded-full bg-blue-50 flex items-center justify-center text-primary font-bold">
+                            {{ complaint.user.username.0|upper }}
+                        </div>
+                        {% endif %}
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <p class="text-sm font-bold">
+                                    {{complaint.user.get_full_name|default:complaint.user.username }}</p>
+                                {% if complaint.user.is_anonymous_public %}
+                                <span
+                                    class="bg-amber-50 text-amber-600 text-[10px] px-1.5 py-0.5 rounded font-medium border border-amber-100"
+                                    title="Visible filter to Admin">Anon (Admin View)</span>
+                                {% endif %}
+                            </div>
+                            <p class="text-xs text-text-muted">{{ complaint.created_at|date:"M d, Y · h:i A" }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {# Three-dot dropdown menu - only visible to post owner #}
+                    {% if complaint.user == request.user %}
+                    <div class="relative">
+                        <button onclick="toggleDropdown('dropdown-{{ complaint.id }}', event)"
+                            class="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+                            <span class="material-symbols-outlined">more_vert</span>
+                        </button>
+                        <div id="dropdown-{{ complaint.id }}"
+                            class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+                            <a href="{% url 'complaint_detail' complaint.id %}"
+                                class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-lg">edit</span>
+                                Edit Post
+                            </a>
+                            <button onclick="openDeleteModal('{{ complaint.id }}')"
+                                class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-lg">delete</span>
+                                Delete Post
+                            </button>
+                            <div class="border-t border-gray-100 my-1"></div>
+                            <a href="{% url 'complaint_detail' complaint.id %}"
+                                class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-lg">visibility</span>
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <h3 class="text-lg font-bold mb-2">{{ complaint.title }}</h3>
+                <p class="text-text-muted text-sm mb-4 line-clamp-3" id="complaint-desc-{{ complaint.id }}">
+                    {{complaint.description }}</p>
+
+                <div class="flex gap-2 flex-wrap mb-4">
+                    <span class="px-3 py-1 bg-zinc-100 text-zinc-600 rounded-full text-[11px] font-bold"
+                        id="complaint-hospital-{{ complaint.id }}">
+                        {{ complaint.hospital_name }}
+                    </span>
+                    <span class="px-3 py-1 bg-blue-50 text-primary rounded-full text-[11px] font-bold"
+                        id="complaint-category-{{ complaint.id }}">
+                        {{ complaint.get_category_display }}
+                    </span>
+                    <span class="px-3 py-1 rounded-full text-[11px] font-bold
+                        {% if complaint.severity == 'high' %} bg-red-50 text-medical-red
+                        {% elif complaint.severity == 'medium' %} bg-amber-50 text-medical-orange
+                        {% else %} bg-teal-50 text-medical-teal {% endif %}"
+                        id="complaint-severity-{{ complaint.id }}">
+                        {{ complaint.get_severity_display }} Severity
+                    </span>
+                </div>
+
+                {% if complaint.evidence %}
+                <div class="mt-5 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50"
+                    id="complaint-evidence-{{ complaint.id }}">
+                    {% with complaint.evidence.url|lower as file_url %}
+                    {% if ".jpg" in file_url or ".jpeg" in file_url or ".png" in file_url or ".webp" in file_url %}
+                    <img src="{{ complaint.evidence.url }}" class="w-full max-h-[360px] object-cover"
+                        alt="Evidence image" />
+                    {% elif ".mp4" in file_url or ".webm" in file_url or ".mov" in file_url %}
+                    <video controls class="w-full max-h-[360px] bg-gray-900">
+                        <source src="{{ complaint.evidence.url }}">
+                        Your browser does not support video playback.
+                    </video>
+                    {% else %}
+                    <div class="p-6 flex flex-col items-center text-gray-500">
+                        <span class="material-symbols-outlined text-3xl">attach_file</span>
+                        <a href="{{ complaint.evidence.url }}" target="_blank"
+                            class="text-blue-600 font-semibold hover:underline">
+                            View attached file
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+                {% endif %}
+
+                {# Hospital Responses Section #}
+                {% if complaint.hospital_responses.all %}
+                <div class="mt-5 space-y-3">
+                    {% for response in complaint.hospital_responses.all %}
+                    <div class="bg-blue-50/50 border border-blue-100/50 rounded-xl p-4 relative overflow-hidden">
+                        {# Decorative accent #}
+                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="size-6 rounded-full bg-blue-100 flex items-center justify-center text-primary">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M36.7273 44C33.9891 44 31.6043 39.8386 30.3636 33.69C29.123 39.8386 26.7382 44 24 44C21.2618 44 18.877 39.8386 17.6364 33.69C16.3957 39.8386 14.0109 44 11.2727 44C7.25611 44 4 35.0457 4 24C4 12.9543 7.25611 4 11.2727 4C14.0109 4 16.3957 8.16144 17.6364 14.31C18.877 8.16144 21.2618 4 24 4C26.7382 4 29.123 8.16144 30.3636 14.31C31.6043 8.16144 33.9891 4 36.7273 4C40.7439 4 44 12.9543 44 24C44 35.0457 40.7439 44 36.7273 44Z"
+                                        fill="currentColor"></path>
+                                </svg>
+                            </div>
+                            <span class="font-bold text-sm text-gray-900">
+                                {{  response.hospital.hospital_profile.hospital_name|default:response.hospital.get_full_name|default:response.hospital.username }}</span>
+                            <span
+                                class="text-[10px] font-bold uppercase tracking-wider text-primary bg-blue-100 px-2 py-0.5 rounded-full">Official
+                                Response</span>
+                            <span class="text-xs text-text-muted ml-auto">{{ response.created_at|date:"M d, Y" }}</span>
+                        </div>
+                        <p class="text-sm text-gray-700 leading-relaxed pl-1">{{ response.message }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="mt-5 pt-4 border-t flex justify-between">
+                    <div class="flex gap-6 text-sm text-text-muted">
+                        <button onclick="toggleLike('{{ complaint.id }}')" id="like-btn-{{ complaint.id }}"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors hover:bg-zinc-100 {% if complaint.is_liked %}text-primary{% else %}text-text-muted hover:text-primary{% endif %}">
+                            <span class="material-symbols-outlined text-[20px]" id="like-icon-{{ complaint.id }}"
+                                style="font-variation-settings: 'FILL' {% if complaint.is_liked %}1{% else %}0{% endif %}, 'wght' 400, 'GRAD' 0, 'opsz' 24;">
+                                thumb_up
+                            </span>
+                            <span class="font-medium text-sm" id="like-count-{{ complaint.id }}">
+                                {{ complaint.likes }}
+                            </span>
+                            <span class="text-xs text-red-500 hidden">{% if complaint.is_liked %}LIKED{% else
+                                %}UNLIKED{% endif %}</span>
+                        </button>
+                        <button onclick="openCommentsModal('{{ complaint.id }}')"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-text-muted hover:text-primary hover:bg-zinc-100 transition-colors">
+                            <span class="material-symbols-outlined text-[20px]"
+                                style="font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;">chat_bubble</span>
+                            <span class="font-medium text-sm">{{ complaint.comments.count }}</span>
+                        </button>
+                        <div class="mt-4 border-t pt-3">
+                            <div class="space-y-3">
+                                {% for comment in complaint.comments.all|slice:":2" %}
+                                <div class="text-sm bg-zinc-50 p-3 rounded-lg">
+                                    <span class="font-semibold">{{ comment.user.username }}</span>:
+                                    {{ comment.content }}
+                                    <div class="text-xs text-text-muted mt-1">
+                                        {{ comment.created_at|date:"M d, Y · h:i A" }}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            {% if complaint.comments.count > 2 %}
+                            <button onclick="openCommentsModal('{{ complaint.id }}')"
+                                class="text-sm text-text-muted mt-2 hover:underline">
+                                View all {{ complaint.comments.count }} comments
+                            </button>
+                            {% endif %}
+
+                            <div id="comments-{{ complaint.id }}"
+                                class="hidden mt-3 max-h-40 overflow-y-auto space-y-3 pr-2">
+                                {% for comment in complaint.comments.all %}
+                                <div class="text-sm bg-zinc-50 p-3 rounded-lg flex justify-between gap-4">
+                                    <div>
+                                        <span class="font-semibold">{{ comment.user.username }}</span>:
+                                        {{ comment.content }}
+                                        <div class="text-xs text-text-muted mt-1">
+                                            {{ comment.created_at|date:"M d, Y · h:i A" }}
+                                        </div>
+                                    </div>
+                                    {% if comment.user == request.user %}
+                                    <form method="post" action="{% url 'delete_comment' comment.id %}">
+                                        {% csrf_token %}
+                                        <button class="text-xs text-red-500 hover:underline">Delete</button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <form method="post" action="{% url 'add_comment' complaint.id %}" class="mt-3 flex gap-2">
+                                {% csrf_token %}
+                                <input type="text" name="content" placeholder="Add a comment..."
+                                    class="flex-1 border rounded-lg px-3 py-2 text-sm" required />
+                                <button class="text-primary font-semibold">Post</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <div id="comments-modal-{{ complaint.id }}"
+            class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50">
+            <div class="bg-white rounded-xl w-full max-w-lg max-h-[80vh] flex flex-col">
+                <div class="flex justify-between items-center px-5 py-4 border-b">
+                    <h3 class="font-bold text-lg">Comments</h3>
+                    <button onclick="closeCommentsModal('{{ complaint.id }}')"
+                        class="text-zinc-400 hover:text-zinc-700 text-xl">✕</button>
+                </div>
+                <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+                    {% for comment in complaint.comments.all %}
+                    <div class="text-sm bg-zinc-50 p-3 rounded-lg flex justify-between gap-4">
+                        <div>
+                            <span class="font-semibold">{{ comment.user.username }}</span><br>
+                            {{ comment.content }}
+                            <div class="text-xs text-text-muted mt-1">
+                                {{ comment.created_at|date:"M d, Y · h:i A" }}
+                            </div>
+                        </div>
+                        {% if comment.user == request.user %}
+                        <form method="post" action="{% url 'delete_comment' comment.id %}">
+                            {% csrf_token %}
+                            <button class="text-xs text-red-500 hover:underline">Delete</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <p class="text-sm text-text-muted">No comments yet.</p>
+                    {% endfor %}
+                </div>
+                <form method="post" action="{% url 'add_comment' complaint.id %}"
+                    class="flex items-center gap-2 px-5 py-4 border-t">
+                    {% csrf_token %}
+                    <input type="text" name="content" placeholder="Add a comment..."
+                        class="flex-1 border rounded-lg px-3 py-2 text-sm" required />
+                    <button class="text-primary font-semibold">Post</button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <p class="center text-text-muted">No complaints found.</p>
+        {% endfor %}
+    </div>
+</div>
+
+{# Edit Post Modal #}
+<div id="edit-post-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50">
+    <div class="bg-white rounded-xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-xl">
+        <div class="flex justify-between items-center px-5 py-4 border-b">
+            <h3 class="font-bold text-lg">Edit Post</h3>
+            <button onclick="closeEditModal()" class="text-zinc-400 hover:text-zinc-700 text-xl">✕</button>
+        </div>
+        <form id="edit-post-form" class="flex-1 overflow-y-auto px-5 py-4 space-y-4" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="complaint_id" id="edit-complaint-id">
+
+            {# Description #}
+            <div>
+                <label for="edit-description" class="block text-sm font-medium text-text-main mb-1">
+                    Complaint Description <span class="text-red-500">*</span>
+                </label>
+                <textarea id="edit-description" name="description" rows="5"
+                    class="w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:ring-primary focus:border-primary outline-none resize-none"
+                    placeholder="Describe your experience..."></textarea>
+                <p id="edit-description-error" class="text-red-500 text-xs mt-1 hidden"></p>
+            </div>
+
+            {# Hospital/Facility Dropdown #}
+            <div>
+                <label for="edit-hospital" class="block text-sm font-medium text-text-main mb-1">
+                    Select Facility (Optional)
+                </label>
+                <select id="edit-hospital" name="hospital_id"
+                    class="w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:ring-primary focus:border-primary outline-none bg-white">
+                    <option value="">-- Select Registered Hospital --</option>
+                </select>
+            </div>
+
+            {# Category Dropdown #}
+            <div>
+                <label for="edit-category" class="block text-sm font-medium text-text-main mb-1">
+                    Category <span class="text-red-500">*</span>
+                </label>
+                <select id="edit-category" name="category"
+                    class="w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:ring-primary focus:border-primary outline-none bg-white">
+                    <option value="">-- Select Category --</option>
+                </select>
+                <p id="edit-category-error" class="text-red-500 text-xs mt-1 hidden"></p>
+            </div>
+
+            {# Severity Dropdown #}
+            <div>
+                <label for="edit-severity" class="block text-sm font-medium text-text-main mb-1">
+                    Severity <span class="text-red-500">*</span>
+                </label>
+                <select id="edit-severity" name="severity"
+                    class="w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:ring-primary focus:border-primary outline-none bg-white">
+                    <option value="">-- Select Severity --</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+                <p id="edit-severity-error" class="text-red-500 text-xs mt-1 hidden"></p>
+            </div>
+
+            {# Unregistered Hospital Name #}
+            <div>
+                <label for="edit-unregistered-hospital" class="block text-sm font-medium text-text-main mb-1">
+                    Or Enter Facility Name <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="edit-unregistered-hospital" name="unregistered_hospital_name"
+                    class="w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:ring-primary focus:border-primary outline-none"
+                    placeholder="Enter facility name if not registered">
+                <p id="edit-hospital-error" class="text-red-500 text-xs mt-1 hidden"></p>
+            </div>
+
+            {# Current Image Preview #}
+            <div id="current-image-container" class="hidden">
+                <label class="block text-sm font-medium text-text-main mb-1">Current Image</label>
+                <img id="current-image-preview" src="" alt="Current evidence"
+                    class="w-full h-40 object-cover rounded-xl border border-zinc-200">
+                <button type="button" onclick="clearEvidence()" class="text-red-500 text-xs hover:underline mt-1">Remove
+                    current image</button>
+            </div>
+
+            {# Replace Image #}
+            <div>
+                <label for="edit-evidence" class="block text-sm font-medium text-text-main mb-1">
+                    Replace Image (Optional)
+                </label>
+                <input type="file" id="edit-evidence" name="evidence" accept="image/*"
+                    class="w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:ring-primary focus:border-primary outline-none bg-white">
+            </div>
+
+            {# New Image Preview #}
+            <div id="new-image-preview-container" class="hidden">
+                <label class="block text-sm font-medium text-text-main mb-1">New Image Preview</label>
+                <img id="new-image-preview" src="" alt="New evidence preview"
+                    class="w-full h-40 object-cover rounded-xl border border-zinc-200">
+                <button type="button" onclick="clearNewEvidence()"
+                    class="text-red-500 text-xs hover:underline mt-1">Remove new image</button>
+            </div>
+        </form>
+        <div class="flex justify-end gap-3 px-5 py-4 border-t bg-zinc-50 rounded-b-xl">
+            <button onclick="closeEditModal()"
+                class="px-5 py-2.5 border border-zinc-200 text-text-main rounded-xl font-medium hover:bg-zinc-100 transition-colors">
+                Cancel
+            </button>
+            <button onclick="submitEditForm()" id="edit-submit-btn"
+                class="px-5 py-2.5 bg-primary text-white rounded-xl font-medium hover:bg-blue-600 transition-colors flex items-center gap-2">
+                <span>Update Post</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+{# Toast Notification #}
+<div id="toast"
+    class="fixed bottom-5 right-5 z-[200] hidden bg-white rounded-xl shadow-lg border border-zinc-100 px-5 py-4 flex items-center gap-3 transform transition-all duration-300 translate-y-2 opacity-0">
+    <span id="toast-icon" class="material-symbols-outlined text-xl"></span>
+    <span id="toast-message" class="text-sm font-medium"></span>
+</div>
+
+
+{# Delete Confirmation Modal #}
+<div id="delete-post-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50">
+    <div class="bg-white rounded-xl w-full max-w-sm flex flex-col shadow-xl overflow-hidden">
+        <div class="px-6 py-6 text-center">
+            <div class="size-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-2xl">warning</span>
+            </div>
+            <h3 class="font-bold text-lg text-gray-900 mb-2">Delete Complaint?</h3>
+            <p class="text-sm text-gray-500">
+                Are you sure you want to delete this complaint? This action cannot be undone.
+            </p>
+            <input type="hidden" id="delete-complaint-id">
+        </div>
+        <div class="flex border-t border-gray-100 bg-gray-50">
+            <button onclick="closeDeleteModal()"
+                class="flex-1 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors border-r border-gray-100">
+                Cancel
+            </button>
+            <button onclick="confirmDeletePost()" id="delete-submit-btn"
+                class="flex-1 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+{# Upload Modal (Ported from upload.html) #}
+<div id="upload-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50">
+    <div class="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-xl">
+        <div class="flex justify-between items-center px-6 py-4 border-b">
+            <h3 class="font-bold text-lg text-text-main">New Complaint</h3>
+            <button onclick="closeUploadModal()" class="text-zinc-400 hover:text-zinc-700 text-xl">✕</button>
+        </div>
+
+        <form id="upload-form" class="flex-1 overflow-y-auto px-6 py-6 space-y-6" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-3 flex gap-3">
+                <span class="material-symbols-outlined text-primary text-xl">shield_lock</span>
+                <p class="text-xs text-text-muted leading-relaxed">
+                    End-to-end encrypted & confidential submission.
+                </p>
+            </div>
+
+            <!-- Title -->
+            <div class="space-y-1">
+                <label class="text-xs font-bold uppercase text-text-muted">Title <span
+                        class="text-red-500">*</span></label>
+                <input type="text" name="title" required placeholder="e.g., Long waiting times"
+                    class="w-full h-10 border border-zinc-200 rounded-lg px-3 text-sm outline-none focus:border-primary">
+            </div>
+
+            <!-- Hospital -->
+            <div class="space-y-1">
+                <label class="text-xs font-bold uppercase text-text-muted">Facility</label>
+                <select name="hospital" onchange="toggleUploadHospitalInput(this)"
+                    class="w-full h-10 border border-zinc-200 rounded-lg px-3 text-sm outline-none focus:border-primary bg-white">
+                    <option value="">Select facility...</option>
+                    {% for hospital in hospitals %}
+                    <option value="{{ hospital.id }}">
+                        {{hospital.hospital_profile.hospital_name|default:hospital.get_full_name|default:hospital.username}}
+                    </option>
+                    {% endfor %}
+                    <option value="other" class="font-bold text-primary">+ Other / Not Listed</option>
+                </select>
+            </div>
+
+            <div id="upload-manual-hospital" class="hidden space-y-1">
+                <input type="text" name="unregistered_hospital_name" placeholder="Enter facility name"
+                    class="w-full h-10 border border-zinc-200 rounded-lg px-3 text-sm outline-none focus:border-primary">
+            </div>
+
+            <!-- Category -->
+            <div class="space-y-1">
+                <label class="text-xs font-bold uppercase text-text-muted">Category <span
+                        class="text-red-500">*</span></label>
+                <select name="category" required
+                    class="w-full h-10 border border-zinc-200 rounded-lg px-3 text-sm outline-none focus:border-primary bg-white">
+                    <option value="">Select Category...</option>
+                    {% for category in categories %}
+                    <option value="{{ category.name }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Severity -->
+            <div class="space-y-1">
+                <label class="text-xs font-bold uppercase text-text-muted">Severity <span
+                        class="text-red-500">*</span></label>
+                <div class="grid grid-cols-3 gap-3">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="severity" value="low" required class="peer sr-only">
+                        <div
+                            class="h-9 border border-zinc-200 rounded-lg flex items-center justify-center gap-2 text-xs font-medium peer-checked:bg-teal-50 peer-checked:border-medical-teal peer-checked:text-medical-teal hover:bg-zinc-50">
+                            Low
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="severity" value="medium" class="peer sr-only">
+                        <div
+                            class="h-9 border border-zinc-200 rounded-lg flex items-center justify-center gap-2 text-xs font-medium peer-checked:bg-amber-50 peer-checked:border-medical-orange peer-checked:text-medical-orange hover:bg-zinc-50">
+                            Medium
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="severity" value="high" class="peer sr-only">
+                        <div
+                            class="h-9 border border-zinc-200 rounded-lg flex items-center justify-center gap-2 text-xs font-medium peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-500 hover:bg-zinc-50">
+                            High
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="space-y-1">
+                <label class="text-xs font-bold uppercase text-text-muted">Description <span
+                        class="text-red-500">*</span></label>
+                <textarea name="description" required rows="4" placeholder="Describe the incident..."
+                    class="w-full border border-zinc-200 rounded-lg p-3 text-sm outline-none focus:border-primary resize-none"></textarea>
+            </div>
+
+            <!-- Evidence -->
+            <div class="space-y-1">
+                <label class="text-xs font-bold uppercase text-text-muted">Evidence (Photo/Video)</label>
+                <input type="file" name="evidence" id="upload-evidence" accept="image/*,video/*"
+                    class="w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-primary hover:file:bg-blue-100">
+            </div>
+
+        </form>
+
+        <div class="flex justify-end gap-3 px-6 py-4 border-t bg-zinc-50 rounded-b-xl">
+            <button onclick="closeUploadModal()"
+                class="px-5 py-2.5 border border-zinc-200 text-text-main rounded-xl font-medium hover:bg-zinc-100 transition-colors text-sm">
+                Cancel
+            </button>
+            <button onclick="submitUploadForm()"
+                class="px-5 py-2.5 bg-primary text-white rounded-xl font-medium hover:bg-blue-600 transition-colors flex items-center gap-2 text-sm shadow-lg shadow-blue-500/20">
+                <span class="material-symbols-outlined text-lg">send</span>
+                <span>Post Complaint</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+
+{# Click outside to close dropdowns #}
+
+
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+    // Current editing complaint data
+    let currentComplaint = null;
+    const allHospitals = [];
+
+    // Populate hospitals once on page load
+    {% if hospitals %}
+    {% for hospital in hospitals %}
+    allHospitals.push({
+        id: {{ hospital.id }},
+        name: '{{ hospital.hospital_profile.hospital_name|default:hospital.get_full_name|default:hospital.username|escapejs }}' // Added escapejs for safety
+    });
+    {% endfor %}
+    {% endif %}
+
+    const allCategories = [];
+    {% if categories %}
+    {% for category in categories %}
+    allCategories.push({
+        name: '{{ category.name|escapejs }}'
+    });
+    {% endfor %}
+    {% endif %}
+
+    function toggleDropdown(id, e) {
+        if (e) {
+            e.stopPropagation();
+        } else if (window.event) {
+            window.event.stopPropagation();
+        }
+
+        const dropdown = document.getElementById(id);
+
+        // Close all other dropdowns first
+        document.querySelectorAll('[id^="dropdown-"]').forEach(d => {
+            if (d.id !== id) d.classList.add('hidden');
+        });
+
+        dropdown.classList.toggle('hidden');
+    }
+
+    function closeAllDropdowns() {
+        document.querySelectorAll('[id^="dropdown-"]').forEach(d => d.classList.add('hidden'));
+    }
+
+    function openEditModal(complaintId) {
+        closeAllDropdowns();
+
+        // Show modal immediately
+        document.getElementById('edit-post-modal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        // Store complaint ID
+        document.getElementById('edit-complaint-id').value = complaintId;
+
+        // Clear previous data
+        document.getElementById('edit-description').value = 'Loading...';
+        document.getElementById('edit-unregistered-hospital').value = '';
+
+        // Clear errors
+        document.getElementById('edit-description-error').classList.add('hidden');
+        document.getElementById('edit-hospital-error').classList.add('hidden');
+
+        // Fetch complaint data
+        fetch(`/complaint/${complaintId}/`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                currentComplaint = data;
+                populateEditModal(data);
+            })
+            .catch(error => {
+                console.error('Error fetching complaint:', error);
+                showToast('Error loading complaint data', 'error');
+                closeEditModal();
+            });
+    }
+
+    function populateEditModal(data) {
+        document.getElementById('edit-description').value = data.description || '';
+        document.getElementById('edit-unregistered-hospital').value = data.unregistered_hospital_name || '';
+
+        // Populate hospital dropdown
+        const hospitalSelect = document.getElementById('edit-hospital');
+        hospitalSelect.innerHTML = '<option value="">-- Select Registered Hospital --</option>';
+
+        // Use global allHospitals array
+        allHospitals.forEach(h => {
+            const option = document.createElement('option');
+            option.value = h.id;
+            option.textContent = h.name;
+            if (data.hospital && data.hospital.id == h.id) {
+                option.selected = true;
+            }
+            hospitalSelect.appendChild(option);
+        });
+
+        // Populate Category dropdown
+        const categorySelect = document.getElementById('edit-category');
+        categorySelect.innerHTML = '<option value="">-- Select Category --</option>';
+        allCategories.forEach(c => {
+            const option = document.createElement('option');
+            option.value = c.name;
+            option.textContent = c.name;
+            if (data.category === c.name) {
+                option.selected = true;
+            }
+            categorySelect.appendChild(option);
+        });
+
+        // Set Severity
+        document.getElementById('edit-severity').value = data.severity || '';
+
+        // Show current image if exists
+        const imageContainer = document.getElementById('current-image-container');
+        const imagePreview = document.getElementById('current-image-preview');
+        if (data.evidence_url) {
+            imagePreview.src = data.evidence_url;
+            imageContainer.classList.remove('hidden');
+        } else {
+            imageContainer.classList.add('hidden');
+        }
+
+        // Clear errors in case they were left from previous open
+        document.getElementById('edit-description-error').classList.add('hidden');
+        document.getElementById('edit-hospital-error').classList.add('hidden');
+        document.getElementById('edit-category-error').classList.add('hidden');
+        document.getElementById('edit-severity-error').classList.add('hidden');
+    }
+
+    function openUploadModal() {
+        document.getElementById('upload-modal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeUploadModal() {
+        document.getElementById('upload-modal').classList.add('hidden');
+        document.body.style.overflow = '';
+        // Reset form
+        document.getElementById('upload-form').reset();
+        document.getElementById('upload-manual-hospital').classList.add('hidden');
+        document.getElementById('new-image-preview-container').classList.add('hidden');
+    }
+
+    function toggleUploadHospitalInput(select) {
+        const div = document.getElementById('upload-manual-hospital');
+        const input = div.querySelector('input');
+        if (select.value === 'other') {
+            div.classList.remove('hidden');
+            input.required = true;
+        } else {
+            div.classList.add('hidden');
+            input.required = false;
+        }
+    }
+
+    function submitUploadForm() {
+        const form = document.getElementById('upload-form');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const formData = new FormData(form);
+        const fileInput = document.getElementById('upload-evidence');
+
+        // 1. Close Modal
+        closeUploadModal();
+
+        // 2. Show Ghost Card
+        const ghostCard = document.getElementById('ghost-card');
+        const ghostImage = document.getElementById('ghost-image-preview');
+        const ghostStatus = document.getElementById('ghost-status-text');
+        const ghostProgress = document.getElementById('ghost-progress-bar');
+        const ghostError = document.getElementById('ghost-error-overlay');
+
+        ghostCard.classList.remove('hidden');
+        ghostError.classList.add('hidden');
+        ghostStatus.textContent = "Uploading...";
+        ghostProgress.style.width = '0%';
+
+        // Preview Image if available
+        if (fileInput.files && fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                ghostImage.src = e.target.result;
+            }
+            reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            // Fallback placeholder
+            ghostImage.src = "https://via.placeholder.com/400x300?text=Text+Only+Post";
+        }
+
+        // 3. AJAX Upload with Progress
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '{% url "upload" %}', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest'); // Important for Django to know it's AJAX request if checking headers
+
+        xhr.upload.onprogress = function (e) {
+            if (e.lengthComputable) {
+                const percentComplete = (e.loaded / e.total) * 100;
+                ghostProgress.style.width = percentComplete + '%';
+                if (percentComplete === 100) {
+                    ghostStatus.textContent = "Processing AI Verification...";
+                }
+            }
+        };
+
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        // Success: Reload page or prepend HTML (Reload is safer for complexity)
+                        window.location.reload();
+                        // To allow animation to finish
+                        ghostStatus.textContent = "Verified!";
+                        setTimeout(() => window.location.reload(), 500);
+                    } else {
+                        // Error
+                        showGhostError(response.error || "Upload failed.");
+                    }
+                } catch (e) {
+                    showGhostError("Invalid server response.");
+                }
+            } else {
+                showGhostError("Server error occurred.");
+            }
+        };
+
+        xhr.onerror = function () {
+            showGhostError("Network error occurred.");
+        };
+
+        xhr.send(formData);
+    }
+
+    function showGhostError(msg) {
+        const ghostStatus = document.getElementById('ghost-status-text');
+        const ghostError = document.getElementById('ghost-error-overlay');
+        const ghostErrorMsg = document.getElementById('ghost-error-message');
+
+        ghostStatus.textContent = "Failed";
+        ghostError.classList.remove('hidden');
+        ghostErrorMsg.textContent = msg;
+    }
+
+    function hideGhostCard() {
+        document.getElementById('ghost-card').classList.add('hidden');
+        // Re-open modal? Maybe not, allow user to decide.
+        openUploadModal(); // Simplify: Re-open modal so they can fix.
+    }
+
+    function closeEditModal() {
+        document.getElementById('edit-post-modal').classList.add('hidden');
+        document.body.style.overflow = '';
+        currentComplaint = null;
+    }
+
+    function clearEvidence() {
+        document.getElementById('current-image-container').classList.add('hidden');
+    }
+
+    function clearNewEvidence() {
+        document.getElementById('edit-evidence').value = '';
+        document.getElementById('new-image-preview-container').classList.add('hidden');
+    }
+
+    // Preview new image
+    document.getElementById('edit-evidence').addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('new-image-preview').src = e.target.result;
+                document.getElementById('new-image-preview-container').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    function submitEditForm() {
+        const complaintId = document.getElementById('edit-complaint-id').value;
+        const description = document.getElementById('edit-description').value.trim();
+        const hospitalId = document.getElementById('edit-hospital').value;
+        const unregisteredHospital = document.getElementById('edit-unregistered-hospital').value.trim();
+        const category = document.getElementById('edit-category').value;
+        const severity = document.getElementById('edit-severity').value;
+        const evidenceInput = document.getElementById('edit-evidence');
+
+        // Validation
+        let hasErrors = false;
+
+        if (!description) {
+            document.getElementById('edit-description-error').textContent = 'Description cannot be empty.';
+            document.getElementById('edit-description-error').classList.remove('hidden');
+            hasErrors = true;
+        } else {
+            document.getElementById('edit-description-error').classList.add('hidden');
+        }
+
+        if (!hospitalId && !unregisteredHospital) {
+            document.getElementById('edit-hospital-error').textContent = 'Please select a facility or enter an unregistered facility name.';
+            document.getElementById('edit-hospital-error').classList.remove('hidden');
+            hasErrors = true;
+        } else {
+            document.getElementById('edit-hospital-error').classList.add('hidden');
+        }
+
+        if (!category) {
+            document.getElementById('edit-category-error').textContent = 'Category is required.';
+            document.getElementById('edit-category-error').classList.remove('hidden');
+            hasErrors = true;
+        } else {
+            document.getElementById('edit-category-error').classList.add('hidden');
+        }
+
+        if (!severity) {
+            document.getElementById('edit-severity-error').textContent = 'Severity is required.';
+            document.getElementById('edit-severity-error').classList.remove('hidden');
+            hasErrors = true;
+        } else {
+            document.getElementById('edit-severity-error').classList.add('hidden');
+        }
+
+        if (hasErrors) return;
+
+        // Submit via AJAX
+        const submitBtn = document.getElementById('edit-submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Updating...';
+
+        const formData = new FormData();
+        formData.append('description', description);
+        formData.append('hospital_id', hospitalId);
+        formData.append('unregistered_hospital_name', unregisteredHospital);
+        formData.append('category', category);
+        formData.append('severity', severity);
+        if (evidenceInput.files[0]) {
+            formData.append('evidence', evidenceInput.files[0]);
+        }
+
+        fetch(`/complaint/${complaintId}/edit-ajax/`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Post updated successfully!', 'success');
+                    updatePostInFeed(data.post);
+                    closeEditModal();
+                } else {
+                    if (data.errors) {
+                        Object.keys(data.errors).forEach(key => {
+                            const errorEl = document.getElementById(`edit-${key}-error`);
+                            if (errorEl) {
+                                errorEl.textContent = data.errors[key][0];
+                                errorEl.classList.remove('hidden');
+                            }
+                        });
+                    } else {
+                        showToast(data.error || 'Error updating post', 'error');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error updating post', 'error');
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>Update Post</span>';
+            });
+    }
+
+    function updatePostInFeed(post) {
+        // Update description
+        const descEl = document.getElementById(`complaint-desc-${post.id}`);
+        if (descEl) {
+            descEl.textContent = post.description;
+        }
+
+        if (hospitalEl) {
+            hospitalEl.textContent = post.hospital_name;
+        }
+
+        // Update Category
+        const categoryEl = document.getElementById(`complaint-category-${post.id}`);
+        // Note: added ID to category span in HTML logic below if not exists, but searching by class or structure is harder. 
+        // Let's assume we need to target the category span. 
+        // In the loop: <span ... id="complaint-category-{{ complaint.id }}">
+        // I will add IDs to category and severity spans in a separate replacement if needed, 
+        // or just traverse DOM. But adding ID is cleaner.
+        // Let's assume I will add IDs to the template loop in a separate chunk.
+
+        const categorySpan = document.getElementById(`complaint-category-${post.id}`);
+        if (categorySpan) {
+            categorySpan.textContent = post.category_display || post.category;
+        }
+
+        // Update Severity
+        const severitySpan = document.getElementById(`complaint-severity-${post.id}`);
+        if (severitySpan) {
+            severitySpan.textContent = post.severity_display + ' Severity';
+
+            // Update color class
+            severitySpan.className = 'px-3 py-1 rounded-full text-[11px] font-bold';
+            if (post.severity === 'high') {
+                severitySpan.classList.add('bg-red-50', 'text-medical-red');
+            } else if (post.severity === 'medium') {
+                severitySpan.classList.add('bg-amber-50', 'text-medical-orange');
+            } else {
+                severitySpan.classList.add('bg-teal-50', 'text-medical-teal');
+            }
+        }
+
+        // Update evidence/image section
+        const evidenceEl = document.getElementById(`complaint-evidence-${post.id}`);
+        if (evidenceEl) {
+            if (post.evidence_url) {
+                // Check if it's an image
+                const fileExt = post.evidence_url.split('.').pop().toLowerCase();
+                const imageExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+                const videoExtensions = ['mp4', 'webm', 'mov'];
+
+                if (imageExtensions.includes(fileExt)) {
+                    evidenceEl.innerHTML = `<img src="${post.evidence_url}" class="w-full max-h-[360px] object-cover" alt="Evidence image" />`;
+                } else if (videoExtensions.includes(fileExt)) {
+                    evidenceEl.innerHTML = `<video controls class="w-full max-h-[360px] bg-black"><source src="${post.evidence_url}">Your browser does not support video playback.</video>`;
+                } else {
+                    evidenceEl.innerHTML = `<div class="p-6 flex flex-col items-center text-text-muted"><span class="material-symbols-outlined text-3xl">attach_file</span><a href="${post.evidence_url}" target="_blank" class="text-primary font-semibold hover:underline">View attached file</a></div>`;
+                }
+                evidenceEl.classList.remove('hidden');
+            } else {
+                evidenceEl.classList.add('hidden');
+            }
+        }
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+        const toastIcon = document.getElementById('toast-icon');
+
+        toastMessage.textContent = message;
+
+        if (type === 'success') {
+            toastIcon.textContent = 'check_circle';
+            toastIcon.className = 'material-symbols-outlined text-xl text-green-500';
+            toast.className = 'fixed bottom-5 right-5 z-[200] bg-white rounded-xl shadow-lg border border-zinc-100 px-5 py-4 flex items-center gap-3 transform transition-all duration-300';
+        } else {
+            toastIcon.textContent = 'error';
+            toastIcon.className = 'material-symbols-outlined text-xl text-red-500';
+            toast.className = 'fixed bottom-5 right-5 z-[200] bg-white rounded-xl shadow-lg border border-zinc-100 px-5 py-4 flex items-center gap-3 transform transition-all duration-300';
+        }
+
+        toast.classList.remove('hidden', 'translate-y-2', 'opacity-0');
+
+        setTimeout(() => {
+            toast.classList.add('translate-y-2', 'opacity-0');
+            setTimeout(() => toast.classList.add('hidden'), 300);
+        }, 3000);
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Toggle like with AJAX
+    function toggleLike(complaintId) {
+        // Correct URL matching urls.py path("like/<int:complaint_id>/ajax/", ...)
+        fetch(`/like/${complaintId}/ajax/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const likeCountEl = document.getElementById(`like-count-${complaintId}`);
+                    const likeBtn = document.getElementById(`like-btn-${complaintId}`);
+                    const likeIcon = document.getElementById(`like-icon-${complaintId}`);
+
+                    if (likeCountEl) likeCountEl.textContent = data.likes;
+
+                    if (data.liked) {
+                        // Liked: set to primary color and filled icon
+                        if (likeBtn) {
+                            likeBtn.classList.remove('text-text-muted');
+                            likeBtn.classList.add('text-primary');
+                        }
+                        if (likeIcon) likeIcon.style.fontVariationSettings = "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24";
+                    } else {
+                        // Unliked: set to muted color and outlined icon
+                        if (likeBtn) {
+                            likeBtn.classList.add('text-text-muted');
+                            likeBtn.classList.remove('text-primary');
+                        }
+                        if (likeIcon) likeIcon.style.fontVariationSettings = "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24";
+                    }
+                } else {
+                    showToast(data.error || 'Error toggling like', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error toggling like', 'error');
+            });
+    }
+
+    function openCommentsModal(id) {
+        document.getElementById(`comments-modal-${id}`).classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeCommentsModal(id) {
+        document.getElementById(`comments-modal-${id}`).classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('[id^="dropdown-"]') && !e.target.closest('button[onclick^="toggleDropdown"]')) {
+            closeAllDropdowns();
+        }
+    });
+
+    // Close edit modal on escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            closeEditModal();
+            closeDeleteModal();
+        }
+    });
+
+    // Delete Post Functions
+    function openDeleteModal(complaintId) {
+        closeAllDropdowns();
+
+        document.getElementById('delete-post-modal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        document.getElementById('delete-complaint-id').value = complaintId;
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('delete-post-modal').classList.add('hidden');
+        document.body.style.overflow = '';
+        document.getElementById('delete-complaint-id').value = '';
+    }
+
+    function confirmDeletePost() {
+        const complaintId = document.getElementById('delete-complaint-id').value;
+        const submitBtn = document.getElementById('delete-submit-btn');
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Deleting...';
+
+        fetch(`/complaint/${complaintId}/delete-ajax/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Post deleted successfully!', 'success');
+                    removePostFromFeed(complaintId);
+                    closeDeleteModal();
+                } else {
+                    showToast(data.error || 'Error deleting post', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error deleting post', 'error');
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>Delete</span>';
+            });
+    }
+
+    function removePostFromFeed(complaintId) {
+        const postElement = document.getElementById(`complaint-${complaintId}`);
+        if (postElement) {
+            postElement.style.transition = 'opacity 0.3s ease';
+            postElement.style.opacity = '0';
+            setTimeout(() => {
+                postElement.remove();
+
+                // Show empty state if no complaints left
+                const posts = document.querySelectorAll('[id^="complaint-"]');
+                if (posts.length === 0) {
+                    const emptyState = document.querySelector('.center.text-gray-400');
+                    if (!emptyState) {
+                        const container = document.querySelector('.space-y-6.pb-20');
+                        if (container) {
+                            container.innerHTML += '<p class="center text-gray-400">No complaints found.</p>';
+                        }
+                    } else {
+                        emptyState.classList.remove('hidden');
+                    }
+                }
+            }, 300);
+        }
+    }
+</script>
+{% endblock %}

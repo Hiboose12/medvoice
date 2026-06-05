@@ -1,0 +1,132 @@
+{% extends 'patients/patient_base.html' %}
+
+{% block title %}Support & Help{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto flex flex-col gap-10">
+    <div class="flex flex-col items-center text-center gap-3">
+        <div class="flex size-16 items-center justify-center rounded-2xl bg-blue-50 text-primary mb-2">
+            <span class="material-symbols-outlined text-[36px]">support_agent</span>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-black tracking-tight text-text-main">Support & Help</h1>
+        <p class="text-text-muted text-lg max-w-2xl">
+            Find answers to common questions about filing complaints or contact our support team directly
+            for assistance.
+        </p>
+
+        {% if messages %}
+        <div class="w-full max-w-lg mt-4">
+            {% for message in messages %}
+            <div class="p-4 rounded-xl text-sm font-bold flex items-center gap-3
+                {% if message.tags == 'success' %} bg-teal-50 text-medical-teal border border-teal-100
+                {% elif message.tags == 'error' %} bg-red-50 text-red-600 border border-red-100
+                {% else %} bg-blue-50 text-primary border border-blue-100 {% endif %}">
+                <span class="material-symbols-outlined">
+                    {% if message.tags == 'success' %}check_circle
+                    {% elif message.tags == 'error' %}error
+                    {% else %}info{% endif %}
+                </span>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div class="lg:col-span-7 flex flex-col gap-6">
+            <h2 class="text-xl font-bold text-text-main flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">quiz</span>
+                Frequently Asked Questions
+            </h2>
+            <div class="flex flex-col gap-4">
+                <details class="group bg-white rounded-2xl border border-zinc-100 overflow-hidden shadow-soft open:shadow-md transition-all duration-200" open>
+                    <summary class="flex items-center justify-between p-5 cursor-pointer font-bold text-text-main select-none hover:bg-zinc-50 transition-colors">
+                        How do I submit a complaint?
+                        <span class="material-symbols-outlined text-text-muted transition-transform duration-200 group-open:rotate-180">expand_more</span>
+                    </summary>
+                    <div class="px-5 pb-5 pt-0 text-text-muted text-sm leading-relaxed border-t border-transparent group-open:border-zinc-50 group-open:pt-4">
+                        You can submit a complaint by clicking the "Post Complaint" button in the sidebar. You will be guided through a simple form where you can provide details about the incident, the healthcare provider involved, and attach any relevant evidence.
+                    </div>
+                </details>
+
+                <details class="group bg-white rounded-2xl border border-zinc-100 overflow-hidden shadow-soft open:shadow-md transition-all duration-200">
+                    <summary class="flex items-center justify-between p-5 cursor-pointer font-bold text-text-main select-none hover:bg-zinc-50 transition-colors">
+                        Can I post anonymously?
+                        <span class="material-symbols-outlined text-text-muted transition-transform duration-200 group-open:rotate-180">expand_more</span>
+                    </summary>
+                    <div class="px-5 pb-5 pt-0 text-text-muted text-sm leading-relaxed border-t border-transparent group-open:border-zinc-50 group-open:pt-4">
+                        Yes, protecting your privacy is our priority. Your complaint is publicly displayed as "Anonymous User" by default, though MedVoice administrators may see your details for verification purposes only.
+                    </div>
+                </details>
+
+                <details class="group bg-white rounded-2xl border border-zinc-100 overflow-hidden shadow-soft open:shadow-md transition-all duration-200">
+                    <summary class="flex items-center justify-between p-5 cursor-pointer font-bold text-text-main select-none hover:bg-zinc-50 transition-colors">
+                        How is my complaint verified?
+                        <span class="material-symbols-outlined text-text-muted transition-transform duration-200 group-open:rotate-180">expand_more</span>
+                    </summary>
+                    <div class="px-5 pb-5 pt-0 text-text-muted text-sm leading-relaxed border-t border-transparent group-open:border-zinc-50 group-open:pt-4">
+                        Every complaint undergoes a preliminary review by our compliance team. We check for factual consistency and may cross-reference with public hospital records. We may contact you for additional details if needed.
+                    </div>
+                </details>
+
+                <details class="group bg-white rounded-2xl border border-zinc-100 overflow-hidden shadow-soft open:shadow-md transition-all duration-200">
+                    <summary class="flex items-center justify-between p-5 cursor-pointer font-bold text-text-main select-none hover:bg-zinc-50 transition-colors">
+                        How long does resolution take?
+                        <span class="material-symbols-outlined text-text-muted transition-transform duration-200 group-open:rotate-180">expand_more</span>
+                    </summary>
+                    <div class="px-5 pb-5 pt-0 text-text-muted text-sm leading-relaxed border-t border-transparent group-open:border-zinc-50 group-open:pt-4">
+                        Resolution times vary. Simple cases are often resolved within 5-7 business days, while complex investigations involving multiple parties may take up to 30 days. You can track progress on your "My Issues" page.
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <div class="lg:col-span-5 flex flex-col gap-6">
+            <div class="bg-white rounded-2xl border border-zinc-100 shadow-soft p-6 md:p-8">
+                <h2 class="text-xl font-bold text-text-main mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">mail</span>
+                    Contact Support
+                </h2>
+                <form action="{% url 'contact_support' %}" method="POST" class="flex flex-col gap-5">
+                    {% csrf_token %}
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold uppercase text-text-muted tracking-wider" for="subject">Subject</label>
+                        <div class="relative">
+                            <select class="w-full h-12 rounded-xl border-zinc-200 bg-zinc-50 text-text-main text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary px-4 appearance-none outline-none transition-all"
+                                id="subject" name="subject" required>
+                                <option disabled="" selected="" value="">Select a topic...</option>
+                                <option value="complaint_help">Help with a Complaint</option>
+                                <option value="technical">Technical Issue</option>
+                                <option value="privacy">Privacy Concern</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
+                                <span class="material-symbols-outlined text-[20px]">expand_more</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold uppercase text-text-muted tracking-wider" for="message">Message</label>
+                        <textarea class="w-full rounded-xl border-zinc-200 bg-zinc-50 text-text-main text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary p-4 min-h-[140px] resize-none outline-none transition-all"
+                            id="message" name="message" required placeholder="Describe your issue or question..."></textarea>
+                    </div>
+                    <button class="w-full bg-primary hover:bg-primary/90 text-white text-sm font-bold h-12 rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 mt-2"
+                        type="submit">
+                        Submit Request
+                        <span class="material-symbols-outlined text-[18px]">send</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-10 pt-10 border-t border-zinc-200 flex flex-col md:flex-row justify-between items-center gap-4 text-center pb-10">
+        <p class="text-text-muted text-sm">© 2026 MedVoice Healthcare Platform. All rights reserved.</p>
+        <div class="flex gap-6">
+            <a href="#" class="text-text-muted hover:text-primary transition-colors text-sm font-medium">Privacy Policy</a>
+            <a href="#" class="text-text-muted hover:text-primary transition-colors text-sm font-medium">Terms of Service</a>
+        </div>
+    </footer>
+</div>
+{% endblock %}

@@ -1,0 +1,219 @@
+{% extends 'patients/patient_base.html' %}
+
+{% block title %}Patient Profile{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    {% if messages %}
+    <div class="mb-6 flex flex-col gap-2">
+        {% for message in messages %}
+        <div
+            class="p-4 rounded-xl {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-100{% else %}bg-green-50 text-green-700 border border-green-100{% endif %} text-sm font-medium">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="flex flex-col gap-6">
+        <div
+            class="bg-gradient-to-br from-[#1e3a8a] to-[#0f172a] rounded-2xl p-8 shadow-lg border border-white/10 flex flex-col md:flex-row items-center gap-8 text-white">
+            <div class="relative">
+                <img class="h-32 w-32 rounded-full object-cover border-4 border-white/20 shadow-lg"
+                    src="{% if profile.photo %}{{ profile.photo.url }}{% else %}https://ui-avatars.com/api/?name={{ user_obj.username }}&background=137fec&color=fff{% endif %}" />
+                <button
+                    class="absolute bottom-1 right-1 bg-white text-primary p-2 rounded-full shadow-lg border-2 border-[#1e3a8a] hover:bg-blue-50 transition-colors">
+                    <span class="material-symbols-outlined text-[18px]">photo_camera</span>
+                </button>
+            </div>
+            <div class="flex-1 text-center md:text-left">
+                <div class="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-2">
+                    <h2 class="text-3xl font-bold text-white">
+                        {{ user_obj.get_full_name|default:user_obj.username }}
+                    </h2>
+                    <p class="text-sm font-medium text-blue-200">{{ user_obj.username }}</p>
+                    <span
+                        class="bg-white/20 text-white text-xs font-bold px-2.5 py-1 rounded-full border border-white/20">Patient</span>
+                    <div
+                        class="flex items-center gap-1 {% if user_obj.is_approved %}bg-green-500/20 text-green-100 border-green-400/30{% else %}bg-amber-500/20 text-amber-100 border-amber-400/30{% endif %} text-xs font-bold px-2.5 py-1 rounded-full border">
+                        {% if user_obj.is_approved %}
+                        <span class="material-symbols-outlined text-[14px]"
+                            style="font-variation-settings: 'FILL' 1;">verified</span>
+                        Verified Status
+                        {% else %}
+                        <span class="material-symbols-outlined text-[14px]"
+                            style="font-variation-settings: 'FILL' 1;">pending</span>
+                        Pending Verification
+                        {% endif %}
+                    </div>
+                </div>
+                <p class="text-blue-200 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">mail</span>
+                    {{ user_obj.email }}
+                </p>
+            </div>
+            <div class="flex gap-3">
+                <a href="{% url 'settings' %}"
+                    class="px-5 py-2.5 rounded-xl bg-white text-[#1e3a8a] font-semibold text-sm hover:bg-blue-50 transition-colors shadow-md border border-white/20">Edit
+                    Profile</a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div
+                class="bg-gradient-to-br from-[#1e3a8a] to-[#0f172a] p-5 rounded-2xl shadow-lg border border-white/10 flex items-center gap-4">
+                <div
+                    class="h-12 w-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-200 border border-blue-400/30">
+                    <span class="material-symbols-outlined">assignment</span>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-white">{{ total_complaints }}</p>
+                    <p class="text-sm text-blue-200">Total Complaints</p>
+                </div>
+            </div>
+            <div
+                class="bg-gradient-to-br from-[#1e3a8a] to-[#0f172a] p-5 rounded-2xl shadow-lg border border-white/10 flex items-center gap-4">
+                <div
+                    class="h-12 w-12 rounded-xl bg-green-500/20 flex items-center justify-center text-green-200 border border-green-400/30">
+                    <span class="material-symbols-outlined">check_circle</span>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-white">{{ resolved_complaints }}</p>
+                    <p class="text-sm text-blue-200">Resolved Complaints</p>
+                </div>
+            </div>
+            <div
+                class="bg-gradient-to-br from-[#1e3a8a] to-[#0f172a] p-5 rounded-2xl shadow-lg border border-white/10 flex items-center gap-4">
+                <div
+                    class="h-12 w-12 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-200 border border-amber-400/30">
+                    <span class="material-symbols-outlined">pending</span>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-white">{{ pending_complaints }}</p>
+                    <p class="text-sm text-blue-200">Pending Complaints</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div
+                class="bg-gradient-to-br from-[#1e3a8a] to-[#0f172a] rounded-2xl p-6 shadow-lg border border-white/10 flex flex-col gap-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <span class="material-symbols-outlined text-blue-400">person</span>
+                        Personal Information
+                    </h3>
+                    <a href="{% url 'settings' %}"
+                        class="text-blue-300 text-sm font-semibold hover:text-white hover:underline">Edit Profile</a>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
+                    <div>
+                        <label class="text-xs font-bold text-blue-200 uppercase tracking-widest block mb-1">Full
+                            Name</label>
+                        <p class="text-white">{{ user_obj.get_full_name|default:user_obj.username }}</p>
+                    </div>
+                    <div>
+                        <label
+                            class="text-xs font-bold text-blue-200 uppercase tracking-widest block mb-1">Username</label>
+                        <p class="text-white">{{ user_obj.username }}</p>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-blue-200 uppercase tracking-widest block mb-1">Email
+                            Address</label>
+                        <p class="text-white">{{ user_obj.email }}</p>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-blue-200 uppercase tracking-widest block mb-1">Phone
+                            Number</label>
+                        <p class="text-white">{{ user_obj.profile.phone_number|default:"Not set" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-6">
+                <div
+                    class="bg-gradient-to-br from-[#1e3a8a] to-[#0f172a] rounded-2xl p-6 shadow-lg border border-white/10 flex flex-col gap-5">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <span class="material-symbols-outlined text-blue-400">security</span>
+                        Security
+                    </h3>
+                    <div class="flex items-center justify-between p-4 bg-white/10 rounded-xl">
+                        <div class="flex flex-col">
+                            <label class="text-xs font-bold text-blue-200 uppercase mb-1">Password</label>
+                            <p class="text-sm font-medium text-white">••••••••••••</p>
+                        </div>
+                        <a href="{% url 'settings' %}"
+                            class="text-blue-200 text-sm font-semibold border border-white/20 bg-white/5 px-3 py-1.5 rounded-lg hover:bg-white/20 hover:text-white transition-colors">Change
+                            Password</a>
+                    </div>
+                    <div
+                        class="flex items-center justify-between p-4 bg-white/5 rounded-xl opacity-50 cursor-not-allowed">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-blue-500/20 rounded-lg text-blue-200">
+                                <span class="material-symbols-outlined text-[20px]">smartphone</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <p class="text-sm font-bold text-white">Two-Factor Authentication</p>
+                                <p class="text-xs text-blue-300">Coming Soon</p>
+                            </div>
+                        </div>
+                        <div class="relative inline-flex items-center">
+                            <input disabled class="sr-only peer" type="checkbox" />
+                            <div class="w-11 h-6 bg-white/20 rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    class="bg-gradient-to-br from-[#1e3a8a] to-[#0f172a] rounded-2xl p-6 shadow-lg border border-white/10">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2 mb-4">
+                        <span class="material-symbols-outlined text-blue-400">verified_user</span>
+                        Identity Verification
+                    </h3>
+                    <div
+                        class="flex items-center justify-between p-4 border {% if user_obj.is_approved %}border-green-400/30 bg-green-500/20{% else %}border-amber-400/30 bg-amber-500/20{% endif %} rounded-xl">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="h-10 w-10 flex items-center justify-center {% if user_obj.is_approved %}bg-green-500/20 text-green-200{% else %}bg-amber-500/20 text-amber-200{% endif %} rounded-full">
+                                <span class="material-symbols-outlined">id_card</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-white">
+                                    Government ID: {% if user_obj.is_approved %}Verified{% else %}Pending{% endif %}
+                                </p>
+                                <p class="text-xs text-blue-200">
+                                    {% if user_obj.is_approved %}Successfully linked{% else %}Under review{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <span class="material-symbols-outlined text-blue-300" title="Read-only access">lock</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-6 border-t border-slate-200">
+            <a href="{% url 'my_complaints' %}"
+                class="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary px-8 h-12 rounded-xl text-white font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-all">
+                <span class="material-symbols-outlined">assignment</span>
+                View My Issues
+            </a>
+            <form method="post" action="{% url 'logout_all_devices' %}" class="w-full sm:w-auto">
+                {% csrf_token %}
+                <button type="submit"
+                    class="w-full flex items-center justify-center gap-2 border border-red-200 text-red-600 px-8 h-12 rounded-xl font-bold hover:bg-red-50 transition-colors">
+                    <span class="material-symbols-outlined">logout</span>
+                    Logout from all devices
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="mt-12 text-center pb-8">
+        <p class="text-xs text-slate-400 flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-[14px]">security</span>
+            MedVoice Secure Protocol · Data is encrypted at rest and in transit
+        </p>
+    </div>
+</div>
+{% endblock %}

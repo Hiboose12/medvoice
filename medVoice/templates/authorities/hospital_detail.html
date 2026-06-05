@@ -1,0 +1,216 @@
+{% extends "authorities/authority_base.html" %}
+{% load static %}
+
+{% block title %}Hospital Details - {{ hospital.username }}{% endblock %}
+
+{% block header_title %}{{ hospital.username }}{% endblock %}
+{% block header_subtitle %}Detailed oversight and statistics{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left Column: Info & Actions -->
+    <div class="lg:col-span-1 space-y-6">
+        <!-- Hospital Profile Card -->
+        <div class="bg-white rounded-xl border border-zinc-200 p-6 card-shadow">
+            <div class="flex flex-col items-center text-center mb-6">
+                <div class="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-primary text-4xl">local_hospital</span>
+                </div>
+                <h2 class="text-xl font-bold text-text-main">{{ profile.hospital_name|default:hospital.username }}</h2>
+                <p class="text-sm text-text-muted mb-2">Reg: {{ profile.registration_number|default:"N/A" }}</p>
+
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium
+                    {% if current_freeze %}bg-red-100 text-red-700
+                    {% else %}bg-emerald-100 text-emerald-700{% endif %}">
+                    {% if current_freeze %}
+                    <span class="material-symbols-outlined text-xs">block</span> Frozen
+                    {% else %}
+                    <span class="material-symbols-outlined text-xs">check_circle</span> Active
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="space-y-3 text-sm border-t border-zinc-100 pt-4">
+                <div class="flex justify-between">
+                    <span class="text-text-muted">Type</span>
+                    <span class="font-medium text-text-main capitalize"> 
+                        {{ profile.hospital_type|default:"Unknown"}}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-text-muted">Contact</span>
+                    <span class="font-medium text-text-main">{{ profile.contact_number|default:"N/A" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-text-muted">Email</span>
+                    <span class="font-medium text-text-main">{{ profile.email|default:hospital.email }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-text-muted">Joined</span>
+                    <span class="font-medium text-text-main">{{ hospital.date_joined|date:"M d, Y" }}</span>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-6 space-y-2">
+                {% if current_freeze %}
+                <a href="{% url 'authority_unfreeze_hospital' hospital.id %}"
+                    class="block w-full py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-center rounded-lg font-medium transition-colors">
+                    Reactivate Account
+                </a>
+                {% else %}
+                <a href="{% url 'authority_issue_warning' hospital.id %}"
+                    class="block w-full py-2 px-4 bg-amber-100 hover:bg-amber-200 text-amber-800 text-center rounded-lg font-medium transition-colors">
+                    Issue Warning
+                </a>
+                <a href="{% url 'authority_freeze_hospital' hospital.id %}"
+                    class="block w-full py-2 px-4 border border-red-200 text-red-600 hover:bg-red-50 text-center rounded-lg font-medium transition-colors">
+                    Freeze Account
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Warning History -->
+        <div class="bg-white rounded-xl border border-zinc-200 p-6 card-shadow">
+            <h3 class="font-bold text-text-main mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-500">warning</span>
+                Active Warnings
+            </h3>
+            <div class="space-y-4">
+                {% for warning in active_warnings %}
+                <div class="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-xs font-bold text-amber-800 uppercase">
+                            {{ warning.get_warning_type_display}}</span>
+                        <span class="text-xs text-amber-600">{{ warning.created_at|date:"M d" }}</span>
+                    </div>
+                    <p class="text-sm text-amber-900">{{ warning.reason }}</p>
+                </div>
+                {% empty %}
+                <p class="text-sm text-text-muted text-center py-2">No active warnings</p>
+                {% endfor %}
+            </div>
+            <div class="mt-4 pt-4 border-t border-zinc-100 text-center">
+                <a href="{% url 'authority_warnings' %}" class="text-sm text-primary hover:underline">View All
+                    Warnings</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Stats & Complaints -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-zinc-200">
+                <p class="text-text-muted text-xs font-medium uppercase">Total Complaints</p>
+                <p class="text-2xl font-bold text-text-main mt-1">{{ stats.total }}</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-zinc-200">
+                <p class="text-text-muted text-xs font-medium uppercase">Resolved</p>
+                <p class="text-2xl font-bold text-emerald-600 mt-1">{{ stats.resolved }}</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-zinc-200">
+                <p class="text-text-muted text-xs font-medium uppercase">Escalated</p>
+                <p class="text-2xl font-bold text-red-600 mt-1">{{ stats.escalated }}</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-zinc-200">
+                <p class="text-text-muted text-xs font-medium uppercase">Pending Review</p>
+                <p class="text-2xl font-bold text-amber-600 mt-1">{{ stats.review }}</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-zinc-200">
+                <p class="text-text-muted text-xs font-medium uppercase">Responded</p>
+                <p class="text-2xl font-bold text-blue-600 mt-1">{{ stats.responded }}</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-zinc-200">
+                <p class="text-text-muted text-xs font-medium uppercase">New</p>
+                <p class="text-2xl font-bold text-zinc-600 mt-1">{{ stats.new }}</p>
+            </div>
+        </div>
+
+        <!-- Recent Complaints Tab -->
+        <div class="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-zinc-200 flex justify-between items-center">
+                <h3 class="font-bold text-text-main">Recent Complaints</h3>
+                <a href="{% url 'authority_complaints' %}?q={{ hospital.username }}"
+                    class="text-sm text-primary hover:underline">View All</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-zinc-50 border-b border-zinc-100">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Title</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase">Date</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-text-muted uppercase">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-100">
+                        {% for complaint in recent_complaints %}
+                        <tr class="hover:bg-zinc-50">
+                            <td class="px-6 py-3 text-sm font-mono text-text-muted">#{{ complaint.id }}</td>
+                            <td class="px-6 py-3 text-sm text-text-main font-medium">
+                                {{ complaint.title|truncatechars:30}}</td>
+                            <td class="px-6 py-3">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                    {% if complaint.status == 'resolved' %}bg-emerald-100 text-emerald-700
+                                    {% elif complaint.escalated_to_authority %}bg-red-100 text-red-700
+                                    {% else %}bg-zinc-100 text-zinc-700{% endif %}">
+                                    {{ complaint.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-3 text-sm text-text-muted">{{ complaint.created_at|date:"M d" }}</td>
+                            <td class="px-6 py-3 text-right">
+                                <a href="{% url 'authority_complaint_detail' complaint.id %}"
+                                    class="text-primary hover:text-primary-dark text-sm font-medium">View</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-text-muted">No complaints found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Freeze History -->
+        {% if freeze_history.exists %}
+        <div class="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-zinc-200">
+                <h3 class="font-bold text-text-main">Status History</h3>
+            </div>
+            <div class="px-6 py-4 space-y-4">
+                {% for log in freeze_history %}
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 mt-1">
+                        {% if log.status == 'frozen' %}
+                        <span class="material-symbols-outlined text-red-500">block</span>
+                        {% elif log.status == 'reactivated' %}
+                        <span class="material-symbols-outlined text-emerald-500">check_circle</span>
+                        {% else %}
+                        <span class="material-symbols-outlined text-zinc-400">info</span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-text-main">{{ log.get_status_display }}</p>
+                        <p class="text-sm text-text-muted">{{ log.frozen_at|date:"M d, Y" }}</p>
+                        {% if log.description %}
+                        <p class="text-sm text-text-muted mt-1 bg-zinc-50 p-2 rounded">{{ log.description }}</p>
+                        {% endif %}
+                        {% if log.explanation_received and log.explanation_text %}
+                        <div class="mt-2 pl-3 border-l-2 border-primary/20">
+                            <p class="text-xs text-primary font-bold uppercase mb-1">Appeal</p>
+                            <p class="text-sm text-text-main italic">"{{ log.explanation_text }}"</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

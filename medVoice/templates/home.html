@@ -1,0 +1,172 @@
+{% load static %}
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>MedVoice - Medical Grievance Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+        rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#3b82f6',   /* Blue 500 (Lighter) */
+                        'secondary': '#1e40af', /* Blue 800 */
+                        'accent': '#1e3a8a',    /* Blue 900 */
+                        'surface': '#eff6ff',   /* Blue 50 */
+                    },
+                    fontFamily: {
+                        'manrope': ['Manrope', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-white text-gray-800 antialiased">
+
+    <!-- Logo & Contact Area (White background) -->
+    <div class="bg-white py-6 border-b border-gray-100">
+        <div class="max-w-[1200px] mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+            <!-- Logo -->
+            <div class="flex items-center gap-2">
+                <div class="flex flex-col">
+                    {% include "includes/medvoice_logo.html" %}
+                    <p class="text-xs text-secondary uppercase tracking-widest font-bold">Medical Transparency</p>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="flex items-center gap-3 md:justify-center">
+                <div
+                    class="h-10 w-10 border border-gray-200 rounded-full flex items-center justify-center text-primary">
+                    <span class="material-symbols-outlined">mail</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-xs text-gray-500 font-bold uppercase">Mail Us Today</span>
+                    <a href="mailto:medVoice#@gmail.com"
+                        class="text-sm font-bold text-gray-900 hover:text-primary transition-colors">medvoice80@gmail.com</a>
+                </div>
+            </div>
+
+            <!-- Call/Location placeholder -->
+            <div class="flex items-center gap-3 md:justify-end">
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar (Blue background) -->
+    <div class="bg-primary text-white sticky top-0 z-50 shadow-lg border-b border-blue-400/20">
+        <div class="max-w-[1200px] mx-auto px-4 h-14 flex items-center justify-between">
+            <nav class="hidden md:flex gap-8 text-sm font-bold uppercase tracking-wide">
+                <a href="{% url 'home' %}" class="text-white border-b-2 border-white pb-0.5">Home</a>
+            </nav>
+            <div class="flex items-center gap-4">
+                <a href="{% url 'login' %}"
+                    class="bg-white text-primary hover:bg-gray-50 px-6 py-2 rounded font-bold text-sm transition-all shadow-md uppercase tracking-wider">
+                    Login / Register
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="relative bg-surface overflow-hidden">
+        <!-- Background Image/Gradient -->
+        <div class="absolute inset-0 bg-gradient-to-r from-white via-surface to-transparent z-10 w-full md:w-3/4"></div>
+
+        <div
+            class="max-w-[1200px] mx-auto px-4 py-20 md:py-32 relative z-20 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div class="flex flex-col gap-6">
+                <span class="text-secondary font-bold tracking-wider uppercase">Welcome to MedVoice</span>
+                <h1 class="text-5xl md:text-6xl font-black text-gray-900 leading-tight">
+                    Platform for <br /> <span class="text-primary">Medical Grievances</span>
+                </h1>
+                <p class="text-gray-600 text-lg max-w-lg leading-relaxed">
+                    A unified ecosystem where patients raise issues, hospitals resolve them, and authorities ensure
+                    transparency. Your voice matters in healthcare.
+                </p>
+                <div class="flex gap-4 mt-4">
+                    <a href="{% url 'login' %}"
+                        class="bg-secondary hover:bg-primary text-white px-8 py-4 rounded font-bold text-sm transition-all uppercase tracking-wide shadow-lg shadow-blue-900/10">
+                        Raise an Issue
+                    </a>
+                </div>
+            </div>
+
+            <!-- Hero Image -->
+            <div class="relative hidden md:block">
+                <div class="flex justify-center items-end">
+                    <img src="{% static 'img/hero_illustration.svg' %}" class="w-full max-w-md mix-blend-multiply"
+                        alt="MedVoice Analytics">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3 Column Feature Section -->
+    <section class="relative z-30 -mt-10 md:-mt-20 pb-20">
+        <div class="max-w-[1200px] mx-auto px-4 grid grid-cols-1 md:grid-cols-3 shadow-2xl rounded-lg overflow-hidden">
+
+            <!-- Column 1: Patient (Dark Blue) -->
+            <div class="bg-accent text-white p-10 flex flex-col gap-4">
+                <span class="text-sm font-bold text-blue-300 uppercase tracking-widest">Step 01</span>
+                <h3 class="text-2xl font-bold">Raise Issues</h3>
+                <p class="text-blue-100 text-sm leading-relaxed mb-4">
+                    Patients can log in to their dashboard and post detailed complaints regarding their medical
+                    experience. Every issue is tracked.
+                </p>
+            </div>
+
+            <!-- Column 2: Hospital (Medium Blue) -->
+            <div class="bg-secondary text-white p-10 flex flex-col gap-4">
+                <span class="text-sm font-bold text-blue-200 uppercase tracking-widest">Step 02</span>
+                <h3 class="text-2xl font-bold">Resolve & Reply</h3>
+                <p class="text-blue-50 text-sm leading-relaxed mb-4">
+                    Hospitals receive notifications for complaints and must respond directly on the platform to resolve
+                    the user's issue promptly.
+                </p>
+            </div>
+
+            <!-- Column 3: Authority (Primary Blue) -->
+            <div class="bg-primary text-white p-10 flex flex-col gap-4">
+                <span class="text-sm font-bold text-blue-100 uppercase tracking-widest">Step 03</span>
+                <h3 class="text-2xl font-bold">Monitor & Verify</h3>
+                <p class="text-white text-sm leading-relaxed mb-4">
+                    Regulatory authorities oversee the entire process, ensuring hospitals are responsive and resolving
+                    issues satisfactorily.
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-50 border-t border-gray-200 py-12">
+        <div class="max-w-[1200px] mx-auto px-4 text-center">
+            <div class="flex items-center justify-center gap-2 mb-6">
+                {% include "includes/medvoice_logo.html" %}
+            </div>
+            <p class="text-gray-500 text-sm">© 2026 MedVoice. All rights reserved. <br> Connecting Patients, Providers,
+                and Authorities.</p>
+        </div>
+    </footer>
+
+</body>
+
+</html>
+{% endblock %}

@@ -1,0 +1,183 @@
+{% extends 'hospitals/hospital_base.html' %}
+
+{% block title %}Community Feed{% endblock %}
+
+{% block content %}
+<div class="flex-1 flex flex-col h-full overflow-hidden relative">
+    <header class="w-full bg-white border-b border-slate-200">
+        <div class="px-6 md:px-8 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <h2 class="text-xl font-bold text-slate-900">Community Feed</h2>
+            </div>
+            <div class="relative">
+                <form method="get">
+                    <input name="q" value="{{ request.GET.q|default:'' }}"
+                        class="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-primary focus:border-primary w-64 outline-none transition-all"
+                        placeholder="Search complaints..." type="text" />
+                </form>
+                <span class="material-symbols-outlined absolute left-3 top-2 text-slate-400 text-xl">search</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8">
+        <div class="max-w-3xl mx-auto space-y-6 pb-20">
+
+            {% if query %}
+            <h3 class="text-lg font-bold mb-4 text-slate-800">Search Results</h3>
+            {% endif %}
+
+            {% for complaint in complaints %}
+            <article
+                class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow relative"
+                id="complaint-{{ complaint.id }}">
+
+                {% if complaint.hospital == request.user %}
+                <div
+                    class="absolute top-0 right-0 bg-red-50 text-red-600 text-xs font-bold px-3 py-1 rounded-bl-xl border-b border-l border-red-100">
+                    Complaint Against Your Hospital
+                </div>
+                {% endif %}
+
+                <div class="p-6">
+                    <div class="flex justify-between mb-5">
+                        <div class="flex gap-3">
+                            {% if complaint.user.is_anonymous_public and request.user.role != 'superadmin' %}
+                            <div
+                                class="size-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                <span class="material-symbols-outlined text-[20px]">visibility_off</span>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <p class="text-sm font-bold text-slate-600">Anonymous User</p>
+                                    <span
+                                        class="bg-slate-100 text-slate-500 text-[10px] px-1.5 py-0.5 rounded font-medium border border-slate-200">Hidden</span>
+                                </div>
+                                <p class="text-xs text-slate-500">{{ complaint.created_at|date:"M d, Y · h:i A" }}</p>
+                            </div>
+                            {% else %}
+                            <div
+                                class="size-10 rounded-full bg-blue-50 flex items-center justify-center text-primary font-bold">
+                                {{ complaint.user.username.0|upper }}
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <p class="text-sm font-bold text-slate-900">
+                                        {{complaint.user.get_full_name|default:complaint.user.username }}</p>
+                                </div>
+                                <p class="text-xs text-slate-500">{{ complaint.created_at|date:"M d, Y · h:i A" }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">{{ complaint.title }}</h3>
+                        <p class="text-slate-600 text-sm line-clamp-3">{{ complaint.description }}</p>
+                    </div>
+
+                    <div class="flex gap-2 flex-wrap mb-4">
+                        <span
+                            class="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[11px] font-bold border border-slate-200">
+                            {{ complaint.hospital_name }}
+                        </span>
+                        <span
+                            class="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-[11px] font-bold border border-blue-100">
+                            {{ complaint.get_category_display }}
+                        </span>
+                        <span class="px-3 py-1 rounded-full text-[11px] font-bold border
+                            {% if complaint.severity == 'high' %} bg-red-50 text-red-700 border-red-100
+                            {% elif complaint.severity == 'medium' %} bg-amber-50 text-amber-700 border-amber-100
+                            {% else %} bg-teal-50 text-teal-700 border-teal-100 {% endif %}">
+                            {{ complaint.get_severity_display }} Severity
+                        </span>
+                        <span class="px-3 py-1 rounded-full text-[11px] font-bold border
+                            {% if complaint.status == 'new' %} bg-blue-50 text-blue-700 border-blue-100
+                            {% elif complaint.status == 'review' %} bg-amber-50 text-amber-700 border-amber-100
+                            {% elif complaint.status == 'responded' %} bg-emerald-50 text-emerald-700 border-emerald-100
+                            {% else %} bg-teal-50 text-teal-700 border-teal-100 {% endif %}">
+                            Status: {{ complaint.get_status_display }}
+                        </span>
+                    </div>
+
+                    {% if complaint.evidence %}
+                    <div class="mb-5 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                        {% with complaint.evidence.url|lower as file_url %}
+                        {% if ".jpg" in file_url or ".jpeg" in file_url or ".png" in file_url or ".webp" in file_url %}
+                        <img src="{{ complaint.evidence.url }}" class="w-full max-h-[300px] object-cover"
+                            alt="Evidence image" />
+                        {% elif ".mp4" in file_url or ".webm" in file_url or ".mov" in file_url %}
+                        <video controls class="w-full max-h-[300px] bg-black">
+                            <source src="{{ complaint.evidence.url }}">
+                            Your browser does not support video playback.
+                        </video>
+                        {% else %}
+                        <div class="p-4 flex items-center gap-3 text-slate-500">
+                            <span class="material-symbols-outlined">attach_file</span>
+                            <a href="{{ complaint.evidence.url }}" target="_blank"
+                                class="text-primary font-semibold hover:underline text-sm">
+                                View attached file
+                            </a>
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Hospital Actions -->
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex flex-wrap gap-3">
+                        <a href="{% url 'complaint_detail' complaint.id %}"
+                            class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-blue-600 transition-colors shadow-sm">
+                            <span class="material-symbols-outlined text-[18px]">visibility</span>
+                            View Details & Manage
+                        </a>
+                    </div>
+
+                    <!-- Existing Responses -->
+                    {% if complaint.hospital_responses.exists %}
+                    <div class="mt-4 space-y-3">
+                        {% for response in complaint.hospital_responses.all %}
+                        <div class="bg-blue-50/50 border border-blue-100/50 rounded-xl p-4 relative overflow-hidden">
+                            {# Decorative accent #}
+                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-600"></div>
+
+                            <div class="flex items-center gap-2 mb-2">
+                                <div
+                                    class="size-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                    <span class="material-symbols-outlined text-[14px]">local_hospital</span>
+                                </div>
+                                <span class="font-bold text-sm text-slate-900">
+                                    {{ response.hospital.hospital_profile.hospital_name|default:response.hospital.get_full_name|default:response.hospital.username }}</span>
+                                <span
+                                    class="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">Official
+                                    Response</span>
+                                <span class="text-xs text-slate-400 ml-auto">{{ response.created_at|date:"M d, Y"  }}</span>
+                            </div>
+                            <p class="text-sm text-slate-700 leading-relaxed pl-1">{{ response.message }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                </div>
+            </article>
+            {% empty %}
+            <div class="text-center py-10">
+                <div class="inline-flex items-center justify-center p-4 bg-slate-100 rounded-full mb-4">
+                    <span class="material-symbols-outlined text-4xl text-slate-400">feed</span>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900">No complaints found</h3>
+                <p class="text-slate-500 text-sm mt-1">Check back later for new community updates.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</div>
+
+<script>
+    function toggleResponseForm(id) {
+        const form = document.getElementById(`response-form-${id}`);
+        form.classList.toggle('hidden');
+    }
+</script>
+{% endblock %}

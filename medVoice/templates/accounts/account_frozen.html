@@ -1,0 +1,96 @@
+{% extends "accounts/base_auth.html" %}
+{% block title %}Account Frozen{% endblock %}
+
+{% block auth_content %}
+<div
+    class="min-h-screen w-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-[#15202b]">
+    <div
+        class="max-w-md w-full space-y-8 bg-white dark:bg-[#1a2632] p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700">
+        <div class="text-center">
+            <div
+                class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-4">
+                <span class="material-symbols-outlined text-3xl text-blue-600 dark:text-blue-400">ac_unit</span>
+            </div>
+            <h2 class="mt-2 text-3xl font-extrabold text-gray-900 dark:text-white">
+                Account Frozen
+            </h2>
+            <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                Hi <span class="font-bold text-gray-900 dark:text-white">{{ disabled_user.username }}</span>,<br>
+                Your account has been temporarily frozen by the administration.
+            </p>
+            {% if freeze_record %}
+            <div class="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg text-left">
+                <h4 class="text-sm font-semibold text-red-800 dark:text-red-300">Reason:</h4>
+                <p class="text-sm text-red-700 dark:text-red-400 mt-1">{{ freeze_record.reason }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if disabled_user.reactivation_requested %}
+        <div
+            class="rounded-xl bg-orange-50 dark:bg-orange-900/20 p-4 border border-orange-100 dark:border-orange-900/40">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <span class="material-symbols-outlined text-orange-400">pending</span>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-orange-800 dark:text-orange-300">
+                        Reactivation Requested
+                    </h3>
+                    <div class="mt-2 text-sm text-orange-700 dark:text-orange-400">
+                        <p>
+                            Your request has been sent to the administrators. You will be notified via email once your
+                            account status is updated.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-6 text-center">
+            <a href="{% url 'logout' %}" class="font-medium text-primary hover:text-blue-500">
+                Sign out and check back later
+            </a>
+        </div>
+        {% else %}
+        <form class="mt-8 space-y-6" action="" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="rounded-md shadow-sm -space-y-px">
+                <div>
+                    <label for="reason" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Request
+                        Reactivation</label>
+                    <textarea id="reason" name="reactivation_reason" rows="4" required
+                        class="appearance-none rounded-xl relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-gray-700 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                        placeholder="Please explain why your account should be reactivated..."></textarea>
+                </div>
+            </div>
+
+            <div>
+                <label for="evidence" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Supporting Evidence (Optional)
+                </label>
+                <input type="file" id="evidence" name="evidence" accept="image/*,.pdf"
+                    class="appearance-none rounded-xl relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-gray-700 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-blue-600"></input>
+                <p class="text-xs text-gray-500 mt-1">Upload any documents or images that support your request.</p>
+            </div>
+
+            <div>
+                <button type="submit"
+                    class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200 shadow-lg shadow-blue-500/30">
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <span
+                            class="material-symbols-outlined h-5 w-5 text-blue-300 group-hover:text-blue-200">send</span>
+                    </span>
+                    Submit Request
+                </button>
+                <div class="mt-4 text-center">
+                    <a href="{% url 'logout' %}"
+                        class="font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white text-sm">
+                        Cancel and Sign out
+                    </a>
+                </div>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

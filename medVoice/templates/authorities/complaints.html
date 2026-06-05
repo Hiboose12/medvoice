@@ -1,0 +1,126 @@
+{% extends "authorities/authority_base.html" %}
+{% load static %}
+
+{% block title %}Complaints - Health Authority{% endblock %}
+
+{% block header_title %}Complaints Overview{% endblock %}
+{% block header_subtitle %}Monitor and manage complaints from your jurisdiction{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="bg-white rounded-xl border border-zinc-200 p-4 mb-6">
+    <form method="get" class="flex flex-wrap gap-4 items-center">
+        <div class="flex-1 min-w-[200px]">
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">search</span>
+                <input type="text" name="q" value="{{ search_query }}" 
+                    placeholder="Search complaints..." 
+                    class="w-full pl-10 pr-4 py-2 border border-zinc-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary">
+            </div>
+        </div>
+        
+        <select name="status" onchange="this.form.submit()" class="px-4 py-2 border border-zinc-200 rounded-lg focus:ring-2 focus:ring-primary/20">
+            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+            <option value="new" {% if status_filter == 'new' %}selected{% endif %}>New</option>
+            <option value="review" {% if status_filter == 'review' %}selected{% endif %}>In Review</option>
+            <option value="responded" {% if status_filter == 'responded' %}selected{% endif %}>Responded</option>
+            <option value="resolved" {% if status_filter == 'resolved' %}selected{% endif %}>Resolved</option>
+        </select>
+        
+        <select name="severity" onchange="this.form.submit()" class="px-4 py-2 border border-zinc-200 rounded-lg focus:ring-2 focus:ring-primary/20">
+            <option value="all" {% if severity_filter == 'all' %}selected{% endif %}>All Severity</option>
+            <option value="low" {% if severity_filter == 'low' %}selected{% endif %}>Low</option>
+            <option value="medium" {% if severity_filter == 'medium' %}selected{% endif %}>Medium</option>
+            <option value="high" {% if severity_filter == 'high' %}selected{% endif %}>High</option>
+        </select>
+        
+        {% if search_query or status_filter != 'all' or severity_filter != 'all' %}
+        <a href="{% url 'authority_complaints' %}" class="px-4 py-2 text-text-muted hover:text-text-main">
+            Clear Filters
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Complaints Table -->
+<div class="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-zinc-50 border-b border-zinc-200">
+                <tr>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">ID</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Hospital</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Title</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Severity</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Escalated</th>
+                    <th class="px-6 py-4 text-right text-xs font-semibold text-text-muted uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-100">
+                {% for complaint in complaints %}
+                <tr class="hover:bg-zinc-50 transition-colors">
+                    <td class="px-6 py-4">
+                        <span class="text-sm font-mono font-medium text-text-main">#{{ complaint.id }}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-zinc-500 text-sm">domain</span>
+                            </div>
+                            <span class="text-sm font-medium text-text-main">{{ complaint.hospital_name }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="text-sm text-text-main max-w-[200px] truncate block">{{ complaint.title }}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if complaint.severity == 'high' %}bg-red-100 text-red-700
+                            {% elif complaint.severity == 'medium' %}bg-amber-100 text-amber-700
+                            {% else %}bg-teal-100 text-teal-700{% endif %}">
+                            {{ complaint.get_severity_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if complaint.status == 'resolved' %}bg-emerald-100 text-emerald-700
+                            {% elif complaint.status == 'responded' %}bg-blue-100 text-blue-700
+                            {% elif complaint.status == 'review' %}bg-amber-100 text-amber-700
+                            {% else %}bg-zinc-100 text-zinc-700{% endif %}">
+                            {{ complaint.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if complaint.escalated_to_authority %}
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                            <span class="material-symbols-outlined text-xs">warning</span>
+                            Yes
+                        </span>
+                        {% else %}
+                        <span class="text-sm text-text-muted">No</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <a href="{% url 'authority_complaint_detail' complaint.id %}" 
+                            class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors">
+                            <span class="material-symbols-outlined text-sm">visibility</span>
+                            View
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center">
+                            <span class="material-symbols-outlined text-5xl text-zinc-300">assignment</span>
+                            <p class="text-text-muted mt-4">No complaints found</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

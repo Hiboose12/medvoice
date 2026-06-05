@@ -1,0 +1,74 @@
+{% extends "authorities/authority_base.html" %}
+{% load static %}
+
+{% block title %}Notifications - Health Authority{% endblock %}
+
+{% block header_title %}Notifications{% endblock %}
+{% block header_subtitle %}Stay updated on escalations and alerts{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+    <div class="divide-y divide-zinc-100">
+        {% for notification in notifications %}
+        <div class="p-4 hover:bg-zinc-50 transition-colors {% if not notification.is_read %}bg-blue-50/50{% endif %}">
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
+                    {% if notification.notification_type == 'escalation' %}bg-red-100
+                    {% elif notification.notification_type == 'warning' %}bg-amber-100
+                    {% elif notification.notification_type == 'freeze' %}bg-red-100
+                    {% elif notification.notification_type == 'unfreeze' %}bg-emerald-100
+                    {% else %}bg-blue-100{% endif %}">
+                    <span class="material-symbols-outlined text-sm
+                        {% if notification.notification_type == 'escalation' %}text-red-600
+                        {% elif notification.notification_type == 'warning' %}text-amber-600
+                        {% elif notification.notification_type == 'freeze' %}text-red-600
+                        {% elif notification.notification_type == 'unfreeze' %}text-emerald-600
+                        {% else %}text-blue-600{% endif %}">
+                        {% if notification.notification_type == 'escalation' %}priority_high
+                        {% elif notification.notification_type == 'warning' %}warning
+                        {% elif notification.notification_type == 'freeze' %}block
+                        {% elif notification.notification_type == 'unfreeze' %}restore
+                        {% elif notification.notification_type == 'explanation' %}info
+                        {% else %}notifications{% endif %}
+                    </span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                        <p class="font-semibold text-text-main">{{ notification.title }}</p>
+                        {% if not notification.is_read %}
+                        <span class="w-2 h-2 bg-primary rounded-full"></span>
+                        {% endif %}
+                    </div>
+                    <p class="text-sm text-text-muted mt-1">{{ notification.message }}</p>
+                    <p class="text-xs text-text-muted mt-2">{{ notification.created_at|timesince }} ago</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    {% if notification.link %}
+                    <a href="{{ notification.link }}" class="px-3 py-1.5 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors">
+                        View
+                    </a>
+                    {% endif %}
+                    {% if notification.complaint %}
+                    <a href="{% url 'authority_complaint_detail' notification.complaint.id %}" 
+                        class="px-3 py-1.5 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors">
+                        Complaint
+                    </a>
+                    {% endif %}
+                    {% if not notification.is_read %}
+                    <a href="{% url 'mark_notification_read' notification.id %}" 
+                        class="px-3 py-1.5 text-sm font-medium text-text-muted hover:text-text-main">
+                        Mark Read
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="p-12 text-center">
+            <span class="material-symbols-outlined text-5xl text-zinc-300">notifications_none</span>
+            <p class="text-text-muted mt-4">No notifications yet</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

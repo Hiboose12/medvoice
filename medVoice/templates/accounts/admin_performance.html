@@ -1,0 +1,174 @@
+{% extends "accounts/admin_base.html" %}
+{% block title %}Performance{% endblock %}
+{% block content %}
+<div class="flex flex-wrap justify-between gap-3 p-4">
+    <div class="flex min-w-72 flex-col gap-2">
+        <h1 class="text-slate-900 dark:text-white text-3xl sm:text-4xl font-black leading-tight tracking-[-0.033em]">Platform Performance</h1>
+        <p class="text-slate-500 dark:text-gray-400 text-base font-normal leading-normal">Real-time overview of MedVoice system metrics.</p>
+    </div>
+    <a href="{% url 'admin_performance' %}?export=1" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary hover:bg-blue-600 transition-colors text-white text-sm font-bold leading-normal tracking-[0.015em]">
+        <span class="truncate flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px]">download</span>
+            Download Report
+        </span>
+    </a>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
+    <div class="flex flex-col gap-2 rounded-lg p-6 bg-white dark:bg-[#1a2632] shadow-sm dark:shadow-none border border-slate-100 dark:border-none">
+        <div class="flex justify-between items-start">
+            <p class="text-slate-500 dark:text-white text-base font-medium leading-normal">Total Complaints</p>
+            <span class="material-symbols-outlined text-gray-400 text-[24px]">assignment_late</span>
+        </div>
+        <p class="text-slate-900 dark:text-white tracking-light text-2xl font-bold leading-tight">1,248</p>
+        <div class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-emerald-500 text-[16px]">trending_up</span>
+            <p class="text-emerald-500 text-sm font-medium leading-normal">+12% vs last week</p>
+        </div>
+    </div>
+    <div class="flex flex-col gap-2 rounded-lg p-6 bg-white dark:bg-[#1a2632] shadow-sm dark:shadow-none border border-slate-100 dark:border-none">
+        <div class="flex justify-between items-start">
+            <p class="text-slate-500 dark:text-white text-base font-medium leading-normal">Resolution Rate</p>
+            <span class="material-symbols-outlined text-gray-400 text-[24px]">check_circle</span>
+        </div>
+        <p class="text-slate-900 dark:text-white tracking-light text-2xl font-bold leading-tight">94.2%</p>
+        <div class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-emerald-500 text-[16px]">trending_up</span>
+            <p class="text-emerald-500 text-sm font-medium leading-normal">+2.1%</p>
+        </div>
+    </div>
+    <div class="flex flex-col gap-2 rounded-lg p-6 bg-white dark:bg-[#1a2632] shadow-sm dark:shadow-none border border-slate-100 dark:border-none">
+        <div class="flex justify-between items-start">
+            <p class="text-slate-500 dark:text-white text-base font-medium leading-normal">Active Users</p>
+            <span class="material-symbols-outlined text-gray-400 text-[24px]">group</span>
+        </div>
+        <p class="text-slate-900 dark:text-white tracking-light text-2xl font-bold leading-tight">8,502</p>
+        <div class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-emerald-500 text-[16px]">trending_up</span>
+            <p class="text-emerald-500 text-sm font-medium leading-normal">+5.4%</p>
+        </div>
+    </div>
+    <div class="flex flex-col gap-2 rounded-lg p-6 bg-white dark:bg-[#1a2632] shadow-sm dark:shadow-none border border-slate-100 dark:border-none">
+        <div class="flex justify-between items-start">
+            <p class="text-slate-500 dark:text-white text-base font-medium leading-normal">Avg. Resolution Time</p>
+            <span class="material-symbols-outlined text-gray-400 text-[24px]">timer</span>
+        </div>
+        <p class="text-slate-900 dark:text-white tracking-light text-2xl font-bold leading-tight">4h 12m</p>
+        <div class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-red-500 text-[16px]">trending_up</span>
+            <p class="text-red-500 text-sm font-medium leading-normal">+10m (slower)</p>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 px-4 py-2">
+        <div class="flex flex-col gap-4 rounded-lg border border-slate-200 dark:border-[#324d67] bg-white dark:bg-[#1a2632] p-6 shadow-sm dark:shadow-none xl:col-span-2">
+        <div class="flex flex-col gap-1">
+            <p class="text-slate-900 dark:text-white text-base font-medium leading-normal">Complaints Trend</p>
+            <p class="text-slate-500 dark:text-gray-400 text-sm font-normal">Last 30 Days Activity</p>
+        </div>
+        <div class="flex flex-col gap-8 flex-1 justify-end">
+            <div class="relative w-full h-[180px] overflow-hidden">
+                <svg class="w-full h-full text-primary" fill="none" preserveaspectratio="none" viewbox="0 0 478 149" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <lineargradient gradientunits="userSpaceOnUse" id="paint0_linear_trend" x1="239" x2="239" y1="0" y2="149">
+                            <stop stop-color="#137fec" stop-opacity="0.2"></stop>
+                            <stop offset="1" stop-color="#137fec" stop-opacity="0"></stop>
+                        </lineargradient>
+                    </defs>
+                    <path d="M0 109C18.1538 109 18.1538 21 36.3077 21C54.4615 21 54.4615 41 72.6154 41C90.7692 41 90.7692 93 108.923 93C127.077 93 127.077 33 145.231 33C163.385 33 163.385 101 181.538 101C199.692 101 199.692 61 217.846 61C236 61 236 45 254.154 45C272.308 45 272.308 121 290.462 121C308.615 121 308.615 149 326.769 149C344.923 149 344.923 1 363.077 1C381.231 1 381.231 81 399.385 81C417.538 81 417.538 129 435.692 129C453.846 129 453.846 25 472 25V149H0V109Z" fill="url(#paint0_linear_trend)"></path>
+                    <path d="M0 109C18.1538 109 18.1538 21 36.3077 21C54.4615 21 54.4615 41 72.6154 41C90.7692 41 90.7692 93 108.923 93C127.077 93 127.077 33 145.231 33C163.385 33 163.385 101 181.538 101C199.692 101 199.692 61 217.846 61C236 61 236 45 254.154 45C272.308 45 272.308 121 290.462 121C308.615 121 308.615 149 326.769 149C344.923 149 344.923 1 363.077 1C381.231 1 381.231 81 399.385 81C417.538 81 417.538 129 435.692 129C453.846 129 453.846 25 472 25" stroke="currentColor" stroke-linecap="round" stroke-width="3"></path>
+                </svg>
+            </div>
+            <div class="flex justify-between px-2">
+                <p class="text-slate-400 dark:text-gray-400 text-[13px] font-bold tracking-[0.015em]">Week 1</p>
+                <p class="text-slate-400 dark:text-gray-400 text-[13px] font-bold tracking-[0.015em]">Week 2</p>
+                <p class="text-slate-400 dark:text-gray-400 text-[13px] font-bold tracking-[0.015em]">Week 3</p>
+                <p class="text-slate-400 dark:text-gray-400 text-[13px] font-bold tracking-[0.015em]">Week 4</p>
+            </div>
+        </div>
+    </div>
+    <div class="flex flex-col gap-4 rounded-lg border border-slate-200 dark:border-[#324d67] bg-white dark:bg-[#1a2632] p-6 shadow-sm dark:shadow-none">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-slate-900 dark:text-white text-base font-medium leading-normal">User Growth</p>
+            <p class="text-slate-500 dark:text-gray-400 text-sm font-normal">Monthly acquisition</p>
+            </div>
+            <div class="bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded text-emerald-600 dark:text-emerald-400 text-xs font-bold">+8%</div>
+        </div>
+        <div class="grid flex-1 items-end grid-cols-4 gap-4 pt-4 min-h-[180px]">
+            <div class="flex flex-col items-center gap-2 h-full justify-end group">
+                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-t-sm h-[60%] relative overflow-hidden">
+                    <div class="absolute bottom-0 w-full bg-primary/40 h-full group-hover:bg-primary/60 transition-colors"></div>
+                </div>
+                <p class="text-slate-400 dark:text-gray-400 text-[13px] font-bold">Jan</p>
+            </div>
+            <div class="flex flex-col items-center gap-2 h-full justify-end group">
+                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-t-sm h-[40%] relative overflow-hidden">
+                    <div class="absolute bottom-0 w-full bg-primary/40 h-full group-hover:bg-primary/60 transition-colors"></div>
+                </div>
+                <p class="text-slate-400 dark:text-gray-400 text-[13px] font-bold">Feb</p>
+            </div>
+            <div class="flex flex-col items-center gap-2 h-full justify-end group">
+                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-t-sm h-[30%] relative overflow-hidden">
+                    <div class="absolute bottom-0 w-full bg-primary/40 h-full group-hover:bg-primary/60 transition-colors"></div>
+                </div>
+                <p class="text-slate-400 dark:text-gray-400 text-[13px] font-bold">Mar</p>
+            </div>
+            <div class="flex flex-col items-center gap-2 h-full justify-end group">
+                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-t-sm h-[85%] relative overflow-hidden">
+                    <div class="absolute bottom-0 w-full bg-primary h-full"></div>
+                </div>
+                <p class="text-slate-900 dark:text-white text-[13px] font-bold">Apr</p>
+            </div>
+        </div>
+    </div>
+    <div class="flex flex-col gap-4 rounded-lg border border-slate-200 dark:border-[#324d67] bg-white dark:bg-[#1a2632] p-6 shadow-sm dark:shadow-none xl:col-span-3">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-slate-900 dark:text-white text-base font-medium leading-normal">Status Distribution</p>
+            <p class="text-slate-500 dark:text-gray-400 text-sm font-normal">Active Tickets Breakdown</p>
+            </div>
+            <button class="text-primary text-sm font-bold">View Details</button>
+        </div>
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 pt-2">
+            <div class="flex flex-col gap-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-slate-500 dark:text-gray-400 font-medium">Open</span>
+                    <span class="text-slate-900 dark:text-white font-bold">124</span>
+                </div>
+                <div class="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-400 w-[25%] rounded-full"></div>
+                </div>
+            </div>
+            <div class="flex flex-col gap-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-slate-500 dark:text-gray-400 font-medium">In Progress</span>
+                    <span class="text-slate-900 dark:text-white font-bold">86</span>
+                </div>
+                <div class="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-yellow-400 w-[60%] rounded-full"></div>
+                </div>
+            </div>
+            <div class="flex flex-col gap-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-slate-500 dark:text-gray-400 font-medium">Resolved</span>
+                    <span class="text-slate-900 dark:text-white font-bold">892</span>
+                </div>
+                <div class="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-emerald-500 w-[80%] rounded-full"></div>
+                </div>
+            </div>
+            <div class="flex flex-col gap-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-slate-500 dark:text-gray-400 font-medium">Closed</span>
+                    <span class="text-slate-900 dark:text-white font-bold">45</span>
+                </div>
+                <div class="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-slate-500 w-[15%] rounded-full"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

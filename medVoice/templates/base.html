@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>MedVoice</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700;900&display=swap"
+        rel="stylesheet" />
+
+    <!-- Icons -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        rel="stylesheet" />
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    {% load static %}
+    <link rel="icon" href="{% static 'images/favicon.ico' %}">
+    tailwind.config = {
+    darkMode: "class",
+    theme: {
+    extend: {
+    colors: {
+    primary: "#137fec",
+    "background-light": "#f6f7f8",
+    "background-dark": "#101922",
+    },
+    fontFamily: {
+    display: ["Public Sans", "sans-serif"],
+    },
+    },
+    },
+    }
+    </script>
+
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display antialiased">
+
+    <!-- 🔹 HEADER -->
+    {% if user.role == 'patient' or not user.is_authenticated %}
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur border-b">
+        <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                {% include "includes/medvoice_logo.html" %}
+            </div>
+
+
+            <nav class="flex gap-4 items-center">
+                {% if user.is_authenticated and user.role == "patient" %}
+                <a href="{% url 'feed' %}">Feed</a>
+                {% endif %}
+
+                {% if user.is_authenticated and user.role|lower == "patient" %}
+                <a class="flex items-center gap-2 bg-primary hover:bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-full transition-colors shadow-sm"
+                    href="{% url 'upload'%}">
+                    <span class="material-symbols-outlined text-[18px]">add</span>
+                    Upload Complaint
+                </a>
+                {% endif %}
+                {% if user.is_authenticated and user.role|lower == "patient" %}
+                <a href="{% url 'my_complaints' %}" class="hover:text-primary">
+                    My Complaints
+                </a>
+                {% endif %}
+
+                {% if user.is_authenticated and user.role|lower == "patient" %}
+                <a href="{% url 'patient_chat_home' %}" class="hover:text-primary">
+                    Chat
+                </a>
+                {% endif %}
+                {% if user.is_authenticated and user.role|lower == "patient" %}
+                <a class="text-slate-900 dark:text-white hover:text-primary text-sm font-medium leading-normal transition-colors"
+                    href="{% url 'support' %}">
+                    Support
+                </a>
+                {% endif %}
+                {% if user.is_authenticated %}
+                <a href="{% url 'profile' %}">
+                    {% if user.profile.photo %}
+                    <img src="{{ user.profile.photo.url }}" class="w-8 h-8 rounded-full object-cover">
+                    {% else %}
+                    <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=137fec&color=fff"
+                        class="w-8 h-8 rounded-full border border-slate-200">
+                    {% endif %}
+                </a>
+                {% else %}
+                <a href="{% url 'login' %}" class="bg-primary text-white px-4 py-2 rounded">
+                    Login
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+    {% endif %}
+
+    <!-- 🔹 MAIN CONTENT (THIS IS WHERE CHILD PAGES GO) -->
+    <main class="min-h-screen">
+        {% block content %}{% endblock %}
+    </main>
+    </div>
+
+    </div>
+</body>
+
+<!-- 🔹 FOOTER -->
+<footer class="bg-white border-t py-6 text-center text-sm"></footer>"

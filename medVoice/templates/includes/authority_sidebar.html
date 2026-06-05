@@ -1,0 +1,87 @@
+<aside
+    class="w-64 flex-shrink-0 border-r border-[#e7edf3] bg-white flex flex-col h-full hidden md:flex fixed top-0 bottom-0 left-0 z-20">
+    <div class="flex flex-col h-full p-4">
+        <div class="mb-8 px-2">
+            {% include "includes/medvoice_logo.html" %}
+            <p class="text-[#4c739a] text-xs font-normal leading-normal mt-1">Regulatory Portal</p>
+        </div>
+        <nav class="flex flex-col gap-2 flex-1">
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg {% if request.resolver_match.url_name == 'authority_dashboard' %}bg-primary/10 text-primary{% else %}text-[#4c739a] hover:bg-[#e7edf3] hover:text-[#0d141b]{% endif %} transition-colors group"
+                href="{% url 'authority_dashboard' %}">
+                <span
+                    class="material-symbols-outlined {% if request.resolver_match.url_name != 'authority_dashboard' %}group-hover:text-primary{% endif %}">dashboard</span>
+                <span class="text-sm font-medium">Dashboard</span>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg {% if request.resolver_match.url_name == 'authority_hospitals' %}bg-primary/10 text-primary{% else %}text-[#4c739a] hover:bg-[#e7edf3] hover:text-[#0d141b]{% endif %} transition-colors group"
+                href="{% url 'authority_hospitals' %}">
+                <span
+                    class="material-symbols-outlined {% if request.resolver_match.url_name != 'authority_hospitals' %}group-hover:text-primary{% endif %}">local_hospital</span>
+                <span class="text-sm font-medium">Hospitals</span>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg {% if request.resolver_match.url_name == 'authority_escalations' %}bg-primary/10 text-primary{% else %}text-[#4c739a] hover:bg-[#e7edf3] hover:text-[#0d141b]{% endif %} transition-colors group relative"
+                href="{% url 'authority_escalations' %}">
+                <span
+                    class="material-symbols-outlined {% if request.resolver_match.url_name != 'authority_escalations' %}group-hover:text-primary{% endif %}">warning</span>
+                <span class="text-sm font-medium">Escalations</span>
+                {% if active_escalations_count > 0 %}
+                <span
+                    class="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+                    {{ active_escalations_count }}
+                </span>
+                {% endif %}
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg {% if request.resolver_match.url_name == 'authority_regulations' %}bg-primary/10 text-primary{% else %}text-[#4c739a] hover:bg-[#e7edf3] hover:text-[#0d141b]{% endif %} transition-colors group"
+                href="{% url 'authority_regulations' %}">
+                <span
+                    class="material-symbols-outlined {% if request.resolver_match.url_name != 'authority_regulations' %}group-hover:text-primary{% endif %}">policy</span>
+                <span class="text-sm font-medium">Regulations</span>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg {% if request.resolver_match.url_name == 'authority_settings' %}bg-primary/10 text-primary{% else %}text-[#4c739a] hover:bg-[#e7edf3] hover:text-[#0d141b]{% endif %} transition-colors group"
+                href="{% url 'authority_settings' %}">
+                <span
+                    class="material-symbols-outlined {% if request.resolver_match.url_name != 'authority_settings' %}group-hover:text-primary{% endif %}">settings</span>
+                <span class="text-sm font-medium">Settings</span>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg {% if request.resolver_match.url_name == 'authority_notifications' %}bg-primary/10 text-primary{% else %}text-[#4c739a] hover:bg-[#e7edf3] hover:text-[#0d141b]{% endif %} transition-colors group relative"
+                href="{% url 'authority_notifications' %}">
+                <span
+                    class="material-symbols-outlined {% if request.resolver_match.url_name != 'authority_notifications' %}group-hover:text-primary{% endif %}">notifications</span>
+                <span class="text-sm font-medium">Notifications</span>
+                {% if unread_notifications_count > 0 %}
+                <span
+                    class="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+                    {{ unread_notifications_count }}
+                </span>
+                {% endif %}
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg {% if request.resolver_match.url_name == 'chat_home' %}bg-primary/10 text-primary{% else %}text-[#4c739a] hover:bg-[#e7edf3] hover:text-[#0d141b]{% endif %} transition-colors group"
+                href="{% url 'chat_home' %}">
+                <span
+                    class="material-symbols-outlined {% if request.resolver_match.url_name != 'chat_home' %}group-hover:text-primary{% endif %}">chat</span>
+                <span class="text-sm font-medium">Chat</span>
+            </a>
+        </nav>
+        <div class="mt-auto pt-4 border-t border-[#e7edf3]">
+            <div class="flex items-center gap-3 px-3 py-2">
+                <div
+                    class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-400 to-purple-600 flex items-center justify-center text-white text-xs font-bold uppercase">
+                    {{ request.user.username|slice:":2" }}
+                </div>
+                <div class="flex flex-col overflow-hidden">
+                    <p class="text-sm font-medium text-[#0d141b] truncate">
+                        {{request.user.get_full_name|default:request.user.username }}
+                    </p>
+                    <p class="text-xs text-[#4c739a] truncate">{{ request.user.email }}</p>
+                </div>
+            </div>
+            <form action="{% url 'logout' %}" method="post" class="mt-2">
+                {% csrf_token %}
+                <button type="submit"
+                    class="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span class="text-sm font-medium">Logout</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</aside>

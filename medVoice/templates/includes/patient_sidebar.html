@@ -1,0 +1,74 @@
+<aside id="patient-sidebar"
+    class="fixed top-0 left-0 w-[260px] h-full bg-white border-r border-zinc-200 flex flex-col z-50 transition-transform duration-200 -translate-x-full md:translate-x-0">
+    <div class="p-6 flex items-center justify-between">
+        {% include 'includes/medvoice_logo.html' %}
+        <button id="sidebar-close"
+            class="md:hidden p-2 rounded-lg border border-zinc-200 text-text-main hover:bg-zinc-50 transition-colors">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </div>
+    <nav class="flex-1 px-4 py-4 space-y-1">
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'patient_dashboard' %}text-primary bg-blue-50 border-r-4 border-primary{% else %}text-text-muted hover:bg-zinc-50 hover:text-primary{% endif %}"
+            href="{% url 'patient_dashboard'%}">
+            <span class="material-symbols-outlined">dashboard</span>
+            Patient Dashboard
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'upload' %}text-primary bg-blue-50 border-r-4 border-primary{% else %}text-text-muted hover:bg-zinc-50 hover:text-primary{% endif %}"
+            href="{% url 'upload'%}">
+            <span class="material-symbols-outlined">post_add</span>
+            Post Complaint
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'my_complaints' %}text-primary bg-blue-50 border-r-4 border-primary{% else %}text-text-muted hover:bg-zinc-50 hover:text-primary{% endif %}"
+            href="{% url 'my_complaints'%}">
+            <span class="material-symbols-outlined">assignment</span>
+            My Issues
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'feed' %}text-primary bg-blue-50 border-r-4 border-primary{% else %}text-text-muted hover:bg-zinc-50 hover:text-primary{% endif %}"
+            href="{% url 'feed'%}">
+            <span class="material-symbols-outlined">forum</span>
+            Community Feed
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'patient_notifications' %}text-primary bg-blue-50 border-r-4 border-primary{% else %}text-text-muted hover:bg-zinc-50 hover:text-primary{% endif %} relative"
+            href="{% url 'patient_notifications'%}">
+            <span class="material-symbols-outlined">notifications</span>
+            Notifications
+            {% if unread_notifications_count > 0 %}
+            <span
+                class="absolute right-2 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+                {{ unread_notifications_count }}
+            </span>
+            {% endif %}
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'patient_chat_home' or request.resolver_match.url_name == 'patient_chat_room' %}text-primary bg-blue-50 border-r-4 border-primary{% else %}text-text-muted hover:bg-zinc-50 hover:text-primary{% endif %} relative"
+            href="{% url 'patient_chat_home'%}">
+            <span class="material-symbols-outlined">chat_bubble</span>
+            Chat
+            {% if unread_messages_count > 0 %}
+            <span class="absolute right-2 top-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+            {% endif %}
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'patient_profile' %}text-primary bg-blue-50 border-r-4 border-primary{% else %}text-text-muted hover:bg-zinc-50 hover:text-primary{% endif %}"
+            href="{% url 'patient_profile'%}">
+            <span class="material-symbols-outlined">account_circle</span>
+            Profile
+        </a>
+    </nav>
+    <div class="p-4 mt-auto border-t border-zinc-100">
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'settings' %}text-primary bg-blue-50 border-r-4 border-primary{% else %}text-slate-600 hover:bg-slate-50{% endif %}"
+            href="{% url 'settings' %}">
+            <span class="material-symbols-outlined text-[22px]">settings</span>
+            <span class="text-[15px] font-medium">Settings</span>
+        </a>
+        <div class="p-4 mt-2 border-t border-zinc-100">
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button
+                    class="flex w-full items-center gap-3 px-4 py-3 rounded-lg text-rose-500 hover:bg-rose-50 text-sm font-semibold transition-all">
+                    <span class="material-symbols-outlined">logout</span>
+                    Logout
+                </button>
+            </form>
+        </div>
+    </div>
+</aside>
+{% include 'includes/user_theme_script.html' %}

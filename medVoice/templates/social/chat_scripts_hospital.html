@@ -1,0 +1,198 @@
+<script>
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.startsWith(name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  const searchInput = document.getElementById('user-search-input');
+  const searchResults = document.getElementById('search-results');
+  let searchTimeout;
+
+  function triggerSearch(query) {
+    fetch(`{% url 'search_users' %}?q=${query}`)
+      .then(res => res.json())
+      .then(data => {
+        searchResults.innerHTML = '';
+        searchResults.classList.remove('hidden');
+        if (data.length > 0) {
+          if (query === '') {
+            searchResults.innerHTML = '<div class="px-4 py-2 text-[11px] font-bold text-zinc-400 uppercase tracking-wider bg-zinc-50 border-b border-zinc-100">Suggested Contacts</div>';
+          }
+          data.forEach(user => {
+            const div = document.createElement('div');
+            div.className = 'p-3 px-4 hover:bg-zinc-50 cursor-pointer border-b border-zinc-100 flex items-center gap-3 transition-colors last:border-0';
+            div.innerHTML = `
+              <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+                ${user.username[0].toUpperCase()}
+              </div>
+              <div>
+                <p class="text-sm font-bold text-text-main">${user.full_name}</p>
+                <p class="text-[11px] text-zinc-500 capitalize bg-zinc-100 px-1.5 py-0.5 rounded-md inline-block mt-0.5">${user.role}</p>
+              </div>`;
+            div.onclick = () => window.location.href = `{% url 'hospital_chat_start' 0 %}`.replace('/0/', `/${user.id}/`);
+            searchResults.appendChild(div);
+          });
+        } else {
+          searchResults.innerHTML = '<div class="p-4 text-sm text-text-muted text-center">No users found.</div>';
+        }
+      })
+      .catch(err => console.error("Search error:", err));
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', function () {
+      clearTimeout(searchTimeout);
+      const query = this.value.trim();
+      searchTimeout = setTimeout(() => triggerSearch(query), 300);
+    });
+    document.addEventListener('click', (e) => {
+      if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.classList.add('hidden');
+      }
+    });
+    document.getElementById('new-chat-btn').addEventListener('click', () => {
+      searchInput.focus();
+      triggerSearch('');
+    });
+  }
+
+  {% if active_conversation %}
+  const messagesContainer = document.getElementById('messages-container');
+  function scrollToBottom() {
+    if (messagesContainer) messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+  scrollToBottom();
+
+  let lastMessageId = 0;
+  const existingMessages = document.querySelectorAll('#messages-container > div[data-id]');
+  if (existingMessages.length > 0) {
+    lastMessageId = existingMessages[existingMessages.length - 1].getAttribute('data-id');
+  }
+
+  function deleteMessage(msgId) {
+    if (!confirm("Are you sure you want to delete this message?")) return;
+    const url = "{% url 'delete_message' 0 %}".replace('0', msgId);
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken')
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'ok') {
+          const msgDiv = document.querySelector(`div[data-id="${msgId}"]`);
+          if (msgDiv) msgDiv.remove();
+        } else {
+          alert(data.error || "Error deleting message");
+        }
+      })
+      .catch(err => console.error("Error:", err));
+  }
+
+  function appendMessage(msg) {
+    const isMe = msg.is_me;
+    const alignClass = isMe ? 'items-end self-end' : 'items-start';
+    const bubbleColor = isMe ? 'bg-primary text-white rounded-2xl rounded-tr-none' : 'bg-white text-text-main rounded-2xl rounded-tl-none border border-zinc-100';
+    const ticksHtml = isMe ? `<span class="material-symbols-outlined text-[14px] msg-tick ${msg.is_read ? 'text-white' : 'text-white/70'}" data-msg-id="${msg.id}">done_all</span>` : '';
+    const deleteHtml = (isMe && !msg.is_read) ?
+      `<button onclick="deleteMessage(${msg.id})" class="text-white/70 hover:text-white transition-colors ml-1" title="Delete message">
+           <span class="material-symbols-outlined text-[14px]" style="font-size: 14px; vertical-align: middle;">delete</span>
+         </button>` : '';
+
+    const html = `
+      <div class="flex flex-col gap-1 max-w-[85%] md:max-w-[70%] ${alignClass}" data-id="${msg.id}">
+        <div class="px-4 py-2 shadow-sm text-[15px] leading-relaxed relative ${bubbleColor}">
+          ${msg.attachment_url ? `<a href="${msg.attachment_url}" target="_blank" class="block mb-2"><img src="${msg.attachment_url}" class="max-w-full md:max-w-[240px] rounded-lg border border-black/10"></a>` : ''}
+          <span class="whitespace-pre-wrap block break-words">${msg.content || ''}</span>
+          <div class="flex items-center justify-end gap-1 mt-1 opacity-80 min-w-[50px] text-[10px] font-medium">
+            ${msg.created_at}
+            ${deleteHtml}
+            ${ticksHtml}
+          </div>
+        </div>
+      </div>`;
+    messagesContainer.insertAdjacentHTML('beforeend', html);
+  }
+
+  function fetchNewMessages() {
+    const url = "{% url 'get_messages' active_conversation.id %}?last_id=" + lastMessageId;
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        const statusIndicator = document.getElementById('online-status-indicator');
+        if (statusIndicator && data.is_online !== undefined) {
+          if (data.is_online) {
+            statusIndicator.innerHTML = '<span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span> Online';
+            statusIndicator.classList.remove('text-zinc-400');
+            statusIndicator.classList.add('text-green-600');
+          } else {
+            statusIndicator.innerHTML = '<span class="w-1.5 h-1.5 bg-zinc-300 rounded-full"></span> Offline';
+            statusIndicator.classList.remove('text-green-600');
+            statusIndicator.classList.add('text-zinc-400');
+          }
+        }
+
+        if (data.read_message_ids) {
+          data.read_message_ids.forEach(id => {
+            const tick = document.querySelector(`.msg-tick[data-msg-id="${id}"]`);
+            if (tick) tick.classList.add('text-white');
+          });
+        }
+
+        if (data.messages && data.messages.length > 0) {
+          data.messages.forEach(msg => {
+            appendMessage(msg);
+            lastMessageId = msg.id;
+          });
+          scrollToBottom();
+        }
+      })
+      .catch(err => console.error("Polling error:", err));
+  }
+  setInterval(fetchNewMessages, 3000);
+
+  const chatForm = document.getElementById('chat-form');
+  if (chatForm) {
+    chatForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const input = document.getElementById('chat-input');
+      const fileInput = document.getElementById('file-input');
+      if (!input.value.trim() && fileInput.files.length === 0) return;
+      const formData = new FormData(this);
+      fetch("{% url 'send_message' active_conversation.id %}", { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'ok') {
+            input.value = '';
+            fileInput.value = '';
+            input.placeholder = "Type a message...";
+            fetchNewMessages();
+          }
+        });
+    });
+  }
+
+  const fileInput = document.getElementById('file-input');
+  if (fileInput) {
+    document.getElementById('attach-btn').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => {
+      const chatInput = document.getElementById('chat-input');
+      if (fileInput.files.length > 0) {
+        chatInput.placeholder = `📎 File: ${fileInput.files[0].name}`;
+        chatInput.focus();
+      }
+    });
+  }
+  {% endif %}
+</script>

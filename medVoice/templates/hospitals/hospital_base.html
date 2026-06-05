@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedVoice - Hospital</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#3b82f6",
+            secondary: "#1e40af",
+            accent: "#1e3a8a",
+            surface: "#eff6ff",
+            "text-main": "#0d141b",
+            "text-muted": "#4c739a",
+            "bg-light": "#f6f7f8"
+          },
+          fontFamily: {
+            manrope: ["Manrope", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Manrope', sans-serif;
+    }
+    .form-input,
+    .form-select,
+    .form-textarea {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      color: #111827;
+      font-size: 0.875rem;
+      background-color: #fff;
+      transition: all 0.2s;
+    }
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-800 antialiased">
+  <div class="flex min-h-screen">
+    {% include "includes/hospital_sidebar.html" %}
+    <main class="flex-1 w-full md:ml-64">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  {% block page_scripts %}{% endblock %}
+</body>
+</html>

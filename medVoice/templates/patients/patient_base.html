@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>MedVoice - {% block title %}Patient{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "text-main": "#0d141b",
+                        "text-muted": "#4c739a",
+                        "bg-light": "#f6f7f8",
+                        "medical-teal": "#14b8a6",
+                        "medical-orange": "#f59e0b",
+                        "medical-red": "#ef4444",
+                    },
+                    fontFamily: {
+                        "sans": ["'Public Sans'", "sans-serif"],
+                        "manrope": ["'Manrope'", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "xl": "1rem",
+                        "2xl": "1.5rem",
+                    },
+                    boxShadow: {
+                        "soft": "0 4px 12px rgba(0,0,0,0.03)",
+                    },
+                },
+            },
+        }
+    </script>
+    <style type="text/tailwindcss">
+        body {
+            font-family: 'Public Sans', sans-serif;
+            background-color: #f6f7f8;
+            color: #0d141b;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .toggle-checkbox:checked + .toggle-slot {
+            background-color: #137fec;
+        }
+        .toggle-checkbox:checked + .toggle-slot .toggle-dot {
+            transform: translateX(1.25rem);
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class="min-h-screen bg-bg-light text-text-main font-manrope">
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-40 hidden md:hidden"></div>
+    {% include 'includes/patient_sidebar.html' %}
+    <div class="flex-1 min-h-screen md:ml-[260px]">
+        <header class="md:hidden sticky top-0 z-30 bg-white border-b border-zinc-100">
+            <div class="px-4 py-3 flex items-center justify-between">
+                <button id="sidebar-open" class="p-2 rounded-lg border border-zinc-200 text-text-main hover:bg-zinc-50 transition-colors">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                <div class="flex items-center gap-2 text-text-main">
+                    {% include "includes/medvoice_logo.html" %}
+                </div>
+                <div class="size-9"></div>
+            </div>
+        </header>
+        <main class="min-h-screen">
+            <div class="px-6 py-8 md:px-10 md:py-10">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    <script>
+        (function () {
+            const sidebar = document.getElementById('patient-sidebar');
+            const openBtn = document.getElementById('sidebar-open');
+            const closeBtn = document.getElementById('sidebar-close');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            if (!sidebar || !openBtn || !closeBtn || !overlay) {
+                return;
+            }
+
+            function openSidebar() {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+
+            function closeSidebar() {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+
+            openBtn.addEventListener('click', openSidebar);
+            closeBtn.addEventListener('click', closeSidebar);
+            overlay.addEventListener('click', closeSidebar);
+        })();
+    </script>
+    {% block page_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,90 @@
+<aside
+    class="w-64 flex-shrink-0 border-r border-[#e7edf3] bg-white flex flex-col h-full hidden md:flex fixed top-0 bottom-0 left-0 z-20">
+    <div class="flex flex-col h-full p-4">
+        <div class="mb-8 px-2">
+            {% include "includes/medvoice_logo.html" %}
+            <p class="text-[#4c739a] text-xs font-normal leading-normal mt-1">Hospital Portal</p>
+        </div>
+        <nav class="flex flex-col gap-2 flex-1">
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg {% if request.resolver_match.url_name == 'hospital_dashboard' %}bg-primary/10 text-primary{% else %}text-[#4c739a] hover:bg-[#e7edf3] hover:text-[#0d141b]{% endif %} transition-colors group"
+                href="{% url 'hospital_dashboard' %}">
+                <span
+                    class="material-symbols-outlined {% if request.resolver_match.url_name != 'hospital_dashboard' %}group-hover:text-primary{% endif %}">dashboard</span>
+                <span class="text-sm font-medium">Dashboard</span>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg {% if request.resolver_match.url_name == 'hospital_complaints' %}bg-primary/10 text-primary{% else %}text-[#4c739a] hover:bg-[#e7edf3] hover:text-[#0d141b]{% endif %} transition-colors group relative"
+                href="{% url 'hospital_complaints' %}">
+                <span
+                    class="material-symbols-outlined {% if request.resolver_match.url_name != 'hospital_complaints' %}group-hover:text-primary{% endif %}">assignment</span>
+                <span class="text-sm font-medium">Complaints</span>
+                {% if new_complaints_count > 0 %}
+                <span
+                    class="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+                    {{ new_complaints_count }}
+                </span>
+                {% endif %}
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg {% if request.resolver_match.url_name == 'hospital_feed' %}bg-primary/10 text-primary{% else %}text-[#4c739a] hover:bg-[#e7edf3] hover:text-[#0d141b]{% endif %} transition-colors group"
+                href="{% url 'hospital_feed' %}">
+                <span
+                    class="material-symbols-outlined {% if request.resolver_match.url_name != 'hospital_feed' %}group-hover:text-primary{% endif %}">public</span>
+                <span class="text-sm font-medium">Community Feed</span>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg {% if request.resolver_match.url_name == 'hospital_chat_home' or request.resolver_match.url_name == 'hospital_chat_room' %}bg-primary/10 text-primary{% else %}text-[#4c739a] hover:bg-[#e7edf3] hover:text-[#0d141b]{% endif %} transition-colors group relative"
+                href="{% url 'hospital_chat_home' %}">
+                <span
+                    class="material-symbols-outlined {% if request.resolver_match.url_name != 'hospital_chat_home' and request.resolver_match.url_name != 'hospital_chat_room' %}group-hover:text-primary{% endif %}">chat</span>
+                <span class="text-sm font-medium">Chat</span>
+                {% if unread_messages_count > 0 %}
+                <span class="absolute right-2 top-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                {% endif %}
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg {% if request.resolver_match.url_name == 'hospital_notifications' %}bg-primary/10 text-primary{% else %}text-[#4c739a] hover:bg-[#e7edf3] hover:text-[#0d141b]{% endif %} transition-colors group relative"
+                href="{% url 'hospital_notifications' %}">
+                <span
+                    class="material-symbols-outlined {% if request.resolver_match.url_name != 'hospital_notifications' %}group-hover:text-primary{% endif %}">notifications</span>
+                <span class="text-sm font-medium">Notifications</span>
+                {% if unread_notifications_count > 0 %}
+                <span
+                    class="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+                    {{ unread_notifications_count }}
+                </span>
+                {% endif %}
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg {% if request.resolver_match.url_name == 'hospital_profile' %}bg-primary/10 text-primary{% else %}text-[#4c739a] hover:bg-[#e7edf3] hover:text-[#0d141b]{% endif %} transition-colors group"
+                href="{% url 'hospital_profile' %}">
+                <span
+                    class="material-symbols-outlined {% if request.resolver_match.url_name != 'hospital_profile' %}group-hover:text-primary{% endif %}">id_card</span>
+                <span class="text-sm font-medium">Profile</span>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2 rounded-lg {% if request.resolver_match.url_name == 'hospital_settings' %}bg-primary/10 text-primary{% else %}text-[#4c739a] hover:bg-[#e7edf3] hover:text-[#0d141b]{% endif %} transition-colors group"
+                href="{% url 'hospital_settings' %}">
+                <span
+                    class="material-symbols-outlined {% if request.resolver_match.url_name != 'hospital_settings' %}group-hover:text-primary{% endif %}">settings</span>
+                <span class="text-sm font-medium">Settings</span>
+            </a>
+        </nav>
+        <div class="mt-auto pt-4 border-t border-[#e7edf3]">
+            <div class="flex items-center gap-3 px-3 py-2">
+                <div
+                    class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold uppercase">
+                    {{ request.user.username|slice:":2" }}
+                </div>
+                <div class="flex flex-col overflow-hidden">
+                    <p class="text-sm font-medium text-[#0d141b] truncate">
+                        {{request.user.get_full_name|default:request.user.username }}
+                    </p>
+                    <p class="text-xs text-[#4c739a] truncate">{{ request.user.email }}</p>
+                </div>
+            </div>
+            <form action="{% url 'hospital_logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit"
+                    class="w-full flex items-center gap-3 px-3 py-2 mt-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span class="text-sm font-medium">Logout</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</aside>

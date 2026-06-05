@@ -1,0 +1,106 @@
+{% extends "authorities/authority_base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-6 py-8">
+    <div class="flex items-center gap-4 mb-8">
+        <a href="{% url 'authority_hospitals' %}"
+            class="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-[#e7edf3] text-[#4c739a] hover:text-primary hover:border-primary transition-colors shadow-sm">
+            <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+        </a>
+        <div>
+            <h1 class="text-2xl font-bold text-[#0d141b] font-manrope">Review Appeal</h1>
+            <p class="text-sm text-[#4c739a]">Manage hospital account status</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Hospital Details -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-[#e7edf3] overflow-hidden">
+                <div class="p-6 border-b border-[#e7edf3] flex justify-between items-center">
+                    <h2 class="text-lg font-bold text-[#0d141b]">Hospital Information</h2>
+                    <span class="px-3 py-1 rounded-full text-xs font-bold uppercase
+                        {% if freeze_record.status == 'frozen' %}bg-red-100 text-red-700
+                        {% elif freeze_record.status == 'pending_review' %}bg-blue-100 text-blue-700
+                        {% elif freeze_record.status == 'reactivated' %}bg-green-100 text-green-700
+                        {% elif freeze_record.status == 'permanently_blocked' %}bg-gray-100 text-gray-700{% endif %}">
+                        {{ freeze_record.get_status_display }}
+                    </span>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div
+                            class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl uppercase">
+                            {{ freeze_record.hospital.username|slice:":2" }}
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-[#0d141b]">
+                                {{ freeze_record.hospital.get_full_name|default:freeze_record.hospital.username }}</h3>
+                            <p class="text-[#4c739a]">{{ freeze_record.hospital.email }}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="p-4 bg-red-50 rounded-lg border border-red-100">
+                            <h4 class="text-xs font-bold text-red-800 uppercase mb-2">Freeze Reason</h4>
+                            <p class="font-medium text-red-900">{{ freeze_record.reason }}</p>
+                            <p class="text-sm text-red-700 mt-1">{{ freeze_record.description }}</p>
+                            <p class="text-xs text-red-600 mt-3">Frozen by: {{ freeze_record.frozen_by.username }} on 
+                                {{ freeze_record.frozen_at|date:"M d, Y H:i" }}</p>
+                        </div>
+
+                        <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                            <h4 class="text-xs font-bold text-blue-800 uppercase mb-2">Hospital Explanation</h4>
+                            <p class="font-medium text-blue-900">{{ freeze_record.explanation_text|linebreaksbr }}</p>
+                            <p class="text-xs text-blue-600 mt-3">Submitted on: 
+                                {{ freeze_record.explanation_submitted_at|date:"M d, Y H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Panel -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-xl shadow-sm border border-[#e7edf3] sticky top-8">
+                <div class="p-6 border-b border-[#e7edf3]">
+                    <h2 class="text-lg font-bold text-[#0d141b]">Actions</h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    {% if freeze_record.status == 'pending_review' or freeze_record.status == 'frozen' %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="reactivate">
+                        <button type="submit"
+                            class="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-green-600/20">
+                            <span class="material-symbols-outlined">check_circle</span>
+                            Reactivate Account
+                        </button>
+                        <p class="text-xs text-[#4c739a] mt-2 text-center">
+                            This will restore full access to the hospital and clear active warnings.
+                        </p>
+                    </form>
+
+                    <form method="post"
+                        onsubmit="return confirm('Are you sure you want to PERMANENTLY block this hospital? This action cannot be easily undone.');">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="permanently_block">
+                        <button type="submit"
+                            class="w-full py-3 px-4 bg-white border-2 border-red-600 text-red-600 hover:bg-red-50 font-bold rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined">block</span>
+                            Permanently Block
+                        </button>
+                    </form>
+                    {% else %}
+                    <div class="text-center p-4 bg-gray-50 rounded-lg">
+                        <span class="material-symbols-outlined text-gray-400 text-4xl mb-2">lock_clock</span>
+                        <p class="text-gray-600 font-medium">No actions available</p>
+                        <p class="text-xs text-gray-500">This case has already been processed.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

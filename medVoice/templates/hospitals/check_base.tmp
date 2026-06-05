@@ -1,0 +1,11 @@
+{% extends 'hospitals/base_hospital.html' %} 
+{% comment %} Assuming a base template for hospitals exists. If not, I'll need to check the dashboard template to see what it extends. 
+Based on dashboard view rendering 'hospitals/dashboard.html', let me check that file first to be safe about the base template. 
+For now I will use 'base.html' or similar if I can confirm. 
+Wait, the user context showed `medVoice/templates/includes/hospital_sidebar.html`.
+Let's look at `hospitals/dashboard.html` first to see what it extends.
+I'll check `hospitals/dashboard.html` in the next turn if needed, but for now I will guess `hospitals/base_hospital.html` or similar. 
+Actually, looking at `complaints/feed.html`, it extends `patients/patient_base.html`.
+I'll try to find the hospital base template.
+Actually, I'll pause the write to check the dashboard template first to ensure consistency.
+{% endcomment %}

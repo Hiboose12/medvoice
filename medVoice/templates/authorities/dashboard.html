@@ -1,0 +1,197 @@
+{% extends "authorities/authority_base.html" %}
+{% load static %}
+
+{% block title %}Dashboard - Health Authority{% endblock %}
+
+{% block header_title %}Oversight Dashboard{% endblock %}
+{% block header_subtitle %}Monitoring hospital compliance across your jurisdiction{% endblock %}
+
+{% block content %}
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Hospitals -->
+    <div class="bg-white rounded-xl p-6 border border-zinc-200 card-shadow">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary text-2xl">local_hospital</span>
+            </div>
+            <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">Active</span>
+        </div>
+        <h3 class="text-3xl font-bold text-text-main">{{ total_hospitals }}</h3>
+        <p class="text-sm text-text-muted">Hospitals Under Jurisdiction</p>
+    </div>
+
+    <!-- Active Complaints -->
+    <div class="bg-white rounded-xl p-6 border border-zinc-200 card-shadow">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
+                <span class="material-symbols-outlined text-amber-600 text-2xl">assignment</span>
+            </div>
+        </div>
+        <h3 class="text-3xl font-bold text-text-main">{{ active_complaints }}</h3>
+        <p class="text-sm text-text-muted">Active Complaints</p>
+    </div>
+
+    <!-- Escalated -->
+    <div class="bg-white rounded-xl p-6 border border-red-200 card-shadow">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-lg bg-red-100 flex items-center justify-center">
+                <span class="material-symbols-outlined text-red-600 text-2xl">warning</span>
+            </div>
+            <span class="text-xs font-medium text-red-600 bg-red-50 px-2 py-1 rounded-full">Action Required</span>
+        </div>
+        <h3 class="text-3xl font-bold text-text-main">{{ escalated_complaints }}</h3>
+        <p class="text-sm text-text-muted">Escalated Complaints</p>
+    </div>
+
+    <!-- Resolved -->
+    <div class="bg-white rounded-xl p-6 border border-zinc-200 card-shadow">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center">
+                <span class="material-symbols-outlined text-emerald-600 text-2xl">check_circle</span>
+            </div>
+        </div>
+        <h3 class="text-3xl font-bold text-text-main">{{ resolved_complaints }}</h3>
+        <p class="text-sm text-text-muted">Resolved Complaints</p>
+    </div>
+</div>
+
+<!-- Additional Stats Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- Hospitals with Warnings -->
+    <div class="bg-white rounded-xl p-6 border border-amber-200 card-shadow">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
+                <span class="material-symbols-outlined text-amber-600 text-2xl">report</span>
+            </div>
+        </div>
+        <h3 class="text-3xl font-bold text-text-main">{{ hospitals_with_warnings }}</h3>
+        <p class="text-sm text-text-muted">Hospitals with Active Warnings</p>
+    </div>
+
+    <!-- Frozen Hospitals -->
+    <div class="bg-white rounded-xl p-6 border border-red-200 card-shadow">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-lg bg-red-100 flex items-center justify-center">
+                <span class="material-symbols-outlined text-red-600 text-2xl">block</span>
+            </div>
+        </div>
+        <h3 class="text-3xl font-bold text-text-main">{{ frozen_hospitals }}</h3>
+        <p class="text-sm text-text-muted">Frozen Hospitals</p>
+    </div>
+
+    <!-- Unread Notifications -->
+    <div class="bg-white rounded-xl p-6 border border-zinc-200 card-shadow">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary text-2xl">notifications</span>
+            </div>
+            {% if unread_notifications > 0 %}
+            <span class="text-xs font-medium text-primary bg-blue-50 px-2 py-1 rounded-full">
+                {{ unread_notifications }} New</span>
+            {% endif %}
+        </div>
+        <h3 class="text-3xl font-bold text-text-main">
+            {{ unread_notifications }}</h3>
+        <p class="text-sm text-text-muted">Unread Notifications</p>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Recent Escalations -->
+    <div class="lg:col-span-2 bg-white rounded-xl border border-zinc-200 card-shadow">
+        <div class="p-6 border-b border-zinc-100 flex justify-between items-center">
+            <h3 class="text-lg font-bold text-text-main flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-500">priority_high</span>
+                Recent Escalations
+            </h3>
+            <a href="{% url 'authority_escalations' %}" class="text-sm text-primary hover:underline">View All</a>
+        </div>
+        <div class="divide-y divide-zinc-100">
+            {% for complaint in recent_escalations %}
+            <div class="p-4 hover:bg-zinc-50 transition-colors">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-red-600">assignment</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-semibold text-text-main truncate">{{ complaint.title }}</h4>
+                        <p class="text-sm text-text-muted">{{ complaint.hospital_name }}</p>
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-xs text-text-muted">{{ complaint.created_at|timesince }} ago</span>
+                            <span class="text-xs px-2 py-0.5 rounded-full {% if complaint.severity == 'high' %}bg-red-100 text-red-700{% elif complaint.severity == 'medium' %}bg-amber-100 text-amber-700{% else %}bg-teal-100 text-teal-700{% endif %}">
+                                {{ complaint.get_severity_display }}
+                            </span>
+                        </div>
+                    </div>
+                    <a href="{% url 'authority_complaint_detail' complaint.id %}" class="px-3 py-1.5 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors">
+                        Review
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-8 text-center">
+                <span class="material-symbols-outlined text-4xl text-zinc-300">check_circle</span>
+                <p class="text-text-muted mt-2">No recent escalations</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-xl border border-zinc-200 card-shadow">
+        <div class="p-6 border-b border-zinc-100">
+            <h3 class="text-lg font-bold text-text-main flex items-center gap-2">
+                <span class="material-symbols-outlined">flash_on</span>
+                Quick Actions
+            </h3>
+        </div>
+        <div class="p-4 space-y-2">
+            <a href="{% url 'authority_complaints' %}" class="flex items-center gap-3 p-4 rounded-lg border border-zinc-200 hover:border-primary hover:bg-primary/5 transition-all group">
+                <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-primary transition-colors">
+                    <span class="material-symbols-outlined text-primary group-hover:text-white">assignment</span>
+                </div>
+                <div>
+                    <p class="font-semibold text-text-main">View All Complaints</p>
+                    <p class="text-xs text-text-muted">Browse and manage complaints</p>
+                </div>
+                <span class="material-symbols-outlined ml-auto text-text-muted">chevron_right</span>
+            </a>
+
+            <a href="{% url 'authority_hospitals' %}" class="flex items-center gap-3 p-4 rounded-lg border border-zinc-200 hover:border-primary hover:bg-primary/5 transition-all group">
+                <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center group-hover:bg-emerald-500 transition-colors">
+                    <span class="material-symbols-outlined text-emerald-600 group-hover:text-white">local_hospital</span>
+                </div>
+                <div>
+                    <p class="font-semibold text-text-main">Manage Hospitals</p>
+                    <p class="text-xs text-text-muted">Review and monitor facilities</p>
+                </div>
+                <span class="material-symbols-outlined ml-auto text-text-muted">chevron_right</span>
+            </a>
+
+            <a href="{% url 'authority_warnings' %}" class="flex items-center gap-3 p-4 rounded-lg border border-zinc-200 hover:border-amber-500 hover:bg-amber-50 transition-all group">
+                <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center group-hover:bg-amber-500 transition-colors">
+                    <span class="material-symbols-outlined text-amber-600 group-hover:text-white">warning</span>
+                </div>
+                <div>
+                    <p class="font-semibold text-text-main">Issue Warnings</p>
+                    <p class="text-xs text-text-muted">Manage hospital compliance</p>
+                </div>
+                <span class="material-symbols-outlined ml-auto text-text-muted">chevron_right</span>
+            </a>
+
+            <a href="{% url 'authority_settings' %}" class="flex items-center gap-3 p-4 rounded-lg border border-zinc-200 hover:border-primary hover:bg-primary/5 transition-all group">
+                <div class="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center group-hover:bg-primary transition-colors">
+                    <span class="material-symbols-outlined text-zinc-600 group-hover:text-white">settings</span>
+                </div>
+                <div>
+                    <p class="font-semibold text-text-main">Settings</p>
+                    <p class="text-xs text-text-muted">Configure thresholds and alerts</p>
+                </div>
+                <span class="material-symbols-outlined ml-auto text-text-muted">chevron_right</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

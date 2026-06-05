@@ -1,0 +1,109 @@
+{% extends "authorities/authority_base.html" %}
+{% load static %}
+
+{% block title %}Hospitals - Health Authority{% endblock %}
+
+{% block header_title %}Hospitals Oversight{% endblock %}
+{% block header_subtitle %}Monitor and manage hospitals in your jurisdiction{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="bg-white rounded-xl border border-zinc-200 p-4 mb-6">
+    <form method="get" class="flex flex-wrap gap-4 items-center">
+        <div class="flex-1 min-w-[200px]">
+            <div class="relative">
+                <span
+                    class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">search</span>
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Search hospitals..."
+                    class="w-full pl-10 pr-4 py-2 border border-zinc-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary">
+            </div>
+        </div>
+
+        <select name="status" onchange="this.form.submit()"
+            class="px-4 py-2 border border-zinc-200 rounded-lg focus:ring-2 focus:ring-primary/20">
+            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+            <option value="active">Active</option>
+            <option value="frozen">Frozen</option>
+        </select>
+
+        {% if search_query or status_filter != 'all' %}
+        <a href="{% url 'authority_hospitals' %}" class="px-4 py-2 text-text-muted hover:text-text-main">
+            Clear
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Hospitals Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for item in hospitals %}
+    <div class="bg-white rounded-xl border border-zinc-200 p-6 card-shadow hover:shadow-md transition-shadow">
+        <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary text-xl">local_hospital</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-text-main">{{ item.user.username }}</h3>
+                    <p class="text-sm text-text-muted">{{ item.profile.hospital_name|default:item.user.username }}</p>
+                </div>
+            </div>
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium
+                {% if item.freeze_record and item.freeze_record.status == 'frozen' %}bg-red-100 text-red-700
+                {% else %}bg-emerald-100 text-emerald-700{% endif %}">
+                {% if item.freeze_record and item.freeze_record.status == 'frozen' %}
+                <span class="material-symbols-outlined text-xs">block</span>
+                Frozen
+                {% else %}
+                <span class="material-symbols-outlined text-xs">check_circle</span>
+                Active
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="space-y-2 mb-4">
+            <div class="flex justify-between text-sm">
+                <span class="text-text-muted">Complaints</span>
+                <span class="font-medium text-text-main">{{ item.complaint_count }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-text-muted">Resolved</span>
+                <span class="font-medium text-emerald-600">{{ item.resolved_count }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-text-muted">Active Warnings</span>
+                <span
+                    class="font-medium {% if item.active_warnings > 0 %}text-amber-600{% else %}text-text-muted{% endif %}">
+                    {{ item.active_warnings }}
+                </span>
+            </div>
+        </div>
+
+        <div class="flex gap-2">
+            <a href="{% url 'authority_hospital_detail' item.user.id %}"
+                class="flex-1 px-3 py-2 text-center text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors">
+                View Details
+            </a>
+            {% if item.freeze_record and item.freeze_record.status == 'frozen' %}
+            <a href="{% url 'authority_unfreeze_hospital' item.user.id %}"
+                class="flex-1 px-3 py-2 text-center text-sm font-medium text-emerald-600 border border-emerald-200 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors">
+                Reactivate
+            </a>
+            {% else %}
+            <a href="{% url 'authority_freeze_hospital' item.user.id %}"
+                class="flex-1 px-3 py-2 text-center text-sm font-medium text-red-600 border border-red-200 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+                Freeze
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full">
+        <div class="bg-white rounded-xl border border-zinc-200 p-12 text-center">
+            <span class="material-symbols-outlined text-5xl text-zinc-300">local_hospital</span>
+            <p class="text-text-muted mt-4">No hospitals found in your jurisdiction</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

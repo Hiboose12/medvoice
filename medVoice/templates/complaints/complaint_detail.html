@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Complaint Details - MedVoice</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;900&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#137fec",
+            "background-main": "#f6f7f8",
+            "medical-teal": "#14b8a6",
+            "medical-orange": "#f59e0b",
+            "text-main": "#0d141b",
+            "text-muted": "#4c739a"
+          },
+          fontFamily: {
+            "display": ["Public Sans", "sans-serif"]
+          },
+          borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px" },
+        },
+      },
+    }
+  </script>
+  <style type="text/tailwindcss">
+    .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Public Sans', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-background-main min-h-screen font-display text-text-main flex">
+  {% if user.role == 'hospital' %}
+  {% include 'includes/hospital_sidebar.html' %}
+  {% elif user.role == 'authority' %}
+  {% include 'includes/authority_sidebar.html' %}
+  <!-- Assuming authority_sidebar exists, if not need to create or fallback -->
+  <!-- Checking file list earlier, it does NOT exist. I should create it or use a generic one. -->
+  <!-- Wait, I saw superadmin_sidebar.html but not authority. Let's check includes again. -->
+  <!-- I will use patient_sidebar for patient, hospital_sidebar for hospital, and patient_sidebar as fallback for now or handle it. -->
+  <!-- Actually, better to check the sidebar availability. I saw hospital, patient, superadmin. -->
+  <!-- Use superadmin sidebar for superadmin. For authority, I might need to create one, or use a base one. -->
+  <!-- Let's assume standard layout. -->
+  {% elif user.role == 'superadmin' %}
+  {% include 'includes/superadmin_sidebar.html' %}
+  {% else %}
+  {% include 'includes/patient_sidebar.html' %}
+  {% endif %}
+
+  <main class="ml-[260px] flex-1 p-10">
+    <div class="max-w-4xl mx-auto">
+
+      <a href="{% if user.role == 'hospital' %}{% url 'hospital_dashboard' %}
+      {% elif user.role == 'authority' %}{% url 'authority_dashboard' %}
+      {% elif user.role == 'superadmin' %}{% url 'admin_dashboard' %}
+      {% else %}
+      
+      {% url 'my_complaints' %}{% endif %}"
+        class="flex items-center gap-2 text-text-muted font-bold text-sm hover:text-primary transition-colors mb-6 inline-flex">
+        <span class="material-symbols-outlined text-lg">arrow_back</span>
+        Back to Dashboard
+      </a>
+
+      <div class="bg-white rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-zinc-100 overflow-hidden">
+
+        <!-- HEADER -->
+        <div class="p-8 border-b border-zinc-100">
+          <div class="flex justify-between items-start gap-4">
+            <div>
+              <h1 class="text-2xl font-black tracking-tight text-text-main mb-4">{{ complaint.title }}</h1>
+
+              <div class="flex flex-wrap gap-6 text-text-muted text-sm items-center">
+                <!-- AUTHOR INFO (ANONYMOUS LOGIC) -->
+                {% if complaint.user.is_anonymous_public and request.user.role != 'superadmin' %}
+                <div class="flex items-center gap-2">
+                  <div class="size-6 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400">
+                    <span class="material-symbols-outlined text-[14px]">visibility_off</span>
+                  </div>
+                  <span class="font-bold text-zinc-500">Anonymous User</span>
+                </div>
+                {% else %}
+                <div class="flex items-center gap-2">
+                  {% if complaint.user.profile.photo %}
+                  <img src="{{ complaint.user.profile.photo.url }}"
+                    class="size-6 rounded-full object-cover border border-zinc-100">
+                  {% else %}
+                  <div
+                    class="size-6 rounded-full bg-blue-50 flex items-center justify-center text-primary font-bold text-xs">
+                    {{ complaint.user.username.0|upper }}
+                  </div>
+                  {% endif %}
+                  <span class="font-bold text-text-main">
+                    {{complaint.user.get_full_name|default:complaint.user.username}}</span>
+                  {% if complaint.user.is_anonymous_public %}
+                  <span
+                    class="bg-amber-50 text-amber-600 text-[10px] px-1.5 py-0.5 rounded font-medium border border-amber-100">Anon
+                    (Admin View)</span>
+                  {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="w-px h-4 bg-zinc-200"></div>
+
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-[20px]">apartment</span>
+                  <span class="font-medium">{{ complaint.hospital_name }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-[20px]">calendar_today</span>
+                  <span class="font-medium">{{ complaint.created_at|date:"M d, Y · h:i A" }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-[20px]">category</span>
+                  <span class="font-medium capitalize">{{ complaint.get_category_display }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- STATUS BADGE -->
+            <span class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider
+                      {% if complaint.status == 'new' %} bg-blue-50 text-primary
+                      {% elif complaint.status == 'review' %} bg-amber-50 text-medical-orange
+                      {% elif complaint.status == 'responded' %} bg-emerald-50 text-emerald-600
+                      {% else %} bg-teal-50 text-medical-teal 
+                      {% endif %}
+                    ">
+              {{ complaint.get_status_display }}
+            </span>
+          </div>
+
+          <!-- 🏥 HOSPITAL ACTIONS (Update Status) -->
+          {% if is_assigned_hospital %}
+          <div class="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+            <form action="{% url 'update_complaint_status' complaint.id %}" method="POST"
+              class="flex items-center gap-4 flex-wrap">
+              {% csrf_token %}
+              <label class="text-sm font-bold text-slate-700 whitespace-nowrap">Update Status:</label>
+
+              <div class="relative">
+                <select name="status" onchange="this.form.submit()" class="appearance-none pl-4 pr-10 py-2 rounded-lg text-sm font-bold border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer transition-all
+                  {% if complaint.status == 'new' %}bg-blue-50 text-blue-700 border-blue-200 focus:border-blue-400
+                  {% elif complaint.status == 'review' %}bg-amber-50 text-amber-700 border-amber-200 focus:border-amber-400
+                  {% elif complaint.status == 'responded' %}bg-emerald-50 text-emerald-700 border-emerald-200 focus:border-emerald-400
+                  {% elif complaint.status == 'resolved' %}bg-teal-50 text-teal-700 border-teal-200 focus:border-teal-400
+                  {% endif %}">
+                  <option value="new" {% if complaint.status == 'new' %} selected {% endif %}>
+                    New</option>
+                  <option value="review" {% if complaint.status == 'review' %} selected {% endif %}>
+                    In Review</option>
+                  <option value="responded" {% if complaint.status == 'responded' %} selected {% endif %}>
+                    Responded</option>
+                  <option value="resolved" {% if complaint.status == 'resolved' %} selected {% endif %}>
+                    Resolved</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-current">
+                  <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                  </svg>
+                </div>
+              </div>
+
+              <div class="h-8 w-px bg-slate-200 mx-2"></div>
+
+              <button type="button" onclick="openMessageModal('{{ complaint.id }}')"
+                class="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-50 hover:text-primary transition-all shadow-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">chat_bubble</span>
+                Message Patient
+              </button>
+
+              <a href="{% url 'start_complaint_chat' complaint.id %}" target="_blank"
+                class="bg-white border border-slate-200 text-slate-500 px-3 py-2 rounded-lg hover:bg-slate-50 hover:text-primary transition-all shadow-sm flex items-center justify-center"
+                title="Open Full Chat in New Tab">
+                <span class="material-symbols-outlined text-[20px]">open_in_new</span>
+              </a>
+            </form>
+          </div>
+          {% endif %}
+
+          <!-- Message Modal -->
+          <div id="messageValModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl transform transition-all">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-text-main">Message Patient</h3>
+                <button type="button" onclick="closeMessageModal()" class="text-zinc-400 hover:text-text-main">
+                  <span class="material-symbols-outlined">close</span>
+                </button>
+              </div>
+
+              <div id="modalLoading" class="hidden py-8 flex justify-center">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+
+              <form id="modalMessageForm" class="space-y-4" onsubmit="submitModalMessage(event)">
+                <input type="hidden" id="modalConversationId">
+
+                <div>
+                  <label class="text-xs font-bold text-text-muted uppercase tracking-wider mb-1 block">To</label>
+                  <p id="modalPatientName" class="font-bold text-text-main text-sm"></p>
+                </div>
+
+                <div>
+                  <label class="text-xs font-bold text-text-muted uppercase tracking-wider mb-1 block">From</label>
+                  <p id="modalHospitalName" class="font-bold text-text-main text-sm text-primary"></p>
+                </div>
+
+                <div>
+                  <label class="text-xs font-bold text-text-muted uppercase tracking-wider mb-1 block">Message</label>
+                  <textarea id="modalMessageContent" rows="4"
+                    class="w-full border border-zinc-200 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    placeholder="Type your message here..." required></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                  <button type="button" onclick="closeMessageModal()"
+                    class="px-4 py-2 text-sm font-bold text-text-muted hover:bg-zinc-50 rounded-lg transition-colors">
+                    Cancel
+                  </button>
+                  <button type="submit"
+                    class="px-4 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors shadow-sm">
+                    Send Message
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <script>
+            function openMessageModal(complaintId) {
+              const modal = document.getElementById('messageValModal');
+              const form = document.getElementById('modalMessageForm');
+              const loading = document.getElementById('modalLoading');
+
+              modal.classList.remove('hidden');
+              modal.classList.add('flex');
+
+              form.classList.add('hidden');
+              loading.classList.remove('hidden');
+
+              // Fetch conversation info
+              fetch(`/chat/complaint-info/${complaintId}/`)
+                .then(res => res.json())
+                .then(data => {
+                  loading.classList.add('hidden');
+                  if (data.error) {
+                    alert("Error: " + data.error);
+                    closeMessageModal();
+                    return;
+                  }
+
+                  document.getElementById('modalConversationId').value = data.conversation_id;
+                  document.getElementById('modalPatientName').textContent = data.patient_name;
+                  document.getElementById('modalHospitalName').textContent = data.hospital_name + " (Hospital)";
+                  form.classList.remove('hidden');
+                })
+                .catch(err => {
+                  console.error(err);
+                  loading.classList.add('hidden');
+                  alert("Failed to load chat info.");
+                  closeMessageModal();
+                });
+            }
+
+            function closeMessageModal() {
+              const modal = document.getElementById('messageValModal');
+              modal.classList.add('hidden');
+              modal.classList.remove('flex');
+              document.getElementById('modalMessageContent').value = '';
+            }
+
+            function submitModalMessage(e) {
+              e.preventDefault();
+              const conversationId = document.getElementById('modalConversationId').value;
+              const content = document.getElementById('modalMessageContent').value;
+              const btn = e.target.querySelector('button[type="submit"]');
+
+              if (!content.trim()) return;
+
+              btn.disabled = true;
+              btn.textContent = "Sending...";
+
+              const formData = new FormData();
+              formData.append('content', content);
+
+              // Get CSRF token
+              const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+              fetch(`/chat/${conversationId}/send/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                  'X-CSRFToken': csrftoken
+                }
+              })
+                .then(res => res.json())
+                .then(data => {
+                  btn.disabled = false;
+                  btn.textContent = "Send Message";
+
+                  if (data.status === 'ok') {
+                    closeMessageModal();
+                    // Optional: Show success toast
+                    alert("Message sent successfully!");
+                  } else {
+                    alert("Error sending message: " + (data.error || "Unknown error"));
+                  }
+                })
+                .catch(err => {
+                  console.error(err);
+                  btn.disabled = false;
+                  btn.textContent = "Send Message";
+                  alert("Network error.");
+                });
+            }
+          </script>
+        </div>
+
+        <!-- DESCRIPTION -->
+        <div class="p-8">
+          <h3 class="text-lg font-bold mb-4 text-text-main">Description</h3>
+          <p class="text-text-muted leading-relaxed whitespace-pre-line text-sm border-l-4 border-zinc-100 pl-4">
+            {{ complaint.description }}
+          </p>
+        </div>
+
+        <!-- PUBLIC RESPONSES -->
+        <div class="px-8 pb-8">
+          <h3 class="text-lg font-bold mb-4 text-text-main">Hospital Responses</h3>
+          <div class="space-y-4">
+            {% for response in hospital_responses %}
+            <div class="bg-blue-50/50 border border-blue-100/50 rounded-xl p-4 relative overflow-hidden">
+              {# Decorative accent #}
+              <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-600"></div>
+
+              <div class="flex items-center gap-2 mb-2">
+                <div class="size-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                  <span class="material-symbols-outlined text-[14px]">local_hospital</span>
+                </div>
+                <span class="font-bold text-sm text-slate-900">
+                  {{ response.hospital.hospital_profile.hospital_name|default:response.hospital.get_full_name|default:response.hospital.username }}</span>
+                <span
+                  class="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">Official
+                  Response</span>
+                <span class="text-xs text-slate-400 ml-auto">{{ response.created_at|date:"M d, Y" }}</span>
+              </div>
+              <p class="text-sm text-slate-700 leading-relaxed pl-1">{{ response.message }}</p>
+            </div>
+            {% empty %}
+            <div class="text-sm text-text-muted bg-zinc-50 rounded-lg p-4 border border-zinc-100 text-center italic">
+              No public responses yet.
+            </div>
+            {% endfor %}
+          </div>
+
+          {% if is_assigned_hospital %}
+          <form method="POST" action="{% url 'hospital_public_response' complaint.id %}" class="mt-6 space-y-3">
+            {% csrf_token %}
+            <label class="text-sm font-bold text-text-main">Post a public response</label>
+            <textarea name="message" rows="4"
+              class="w-full border border-zinc-200 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              placeholder="Write a public response visible to all users..."></textarea>
+            <div class="flex justify-end">
+              <button type="submit"
+                class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-600 transition-colors shadow-sm">
+                Post Response
+              </button>
+            </div>
+          </form>
+          {% endif %}
+        </div>
+
+        <!-- EVIDENCE -->
+        {% if complaint.evidence %}
+        <div class="px-8 pb-8">
+          <h3 class="text-lg font-bold mb-4 text-text-main">Supporting Evidence</h3>
+          <div class="bg-zinc-50 rounded-xl border border-zinc-100 overflow-hidden">
+            {% with complaint.evidence.url|lower as file %}
+            {% if ".jpg" in file or ".png" in file or ".jpeg" in file or ".webp" in file %}
+            <img src="{{ complaint.evidence.url }}" class="w-full max-h-[500px] object-contain bg-zinc-900" />
+            {% elif ".mp4" in file or ".webm" in file %}
+            <video controls class="w-full bg-black max-h-[500px]">
+              <source src="{{ complaint.evidence.url }}">
+            </video>
+            {% else %}
+            <div class="p-8 flex flex-col items-center justify-center gap-3">
+              <span class="material-symbols-outlined text-4xl text-text-muted">description</span>
+              <p class="text-sm font-bold text-text-main">{{ complaint.evidence.name }}</p>
+              <a href="{{ complaint.evidence.url }}" target="_blank"
+                class="px-4 py-2 bg-white border border-zinc-200 rounded-lg text-sm font-bold text-primary hover:bg-blue-50 transition-colors shadow-sm">
+                Download attached file
+              </a>
+            </div>
+            {% endif %}
+            {% endwith %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- AUTHORITY WARNING -->
+        {% if is_authority %}
+        <div class="px-8 pb-8">
+          <div class="bg-amber-50 border border-amber-100 rounded-xl p-4">
+            <h4 class="text-sm font-bold text-amber-700 mb-2">Send Warning to Hospital</h4>
+            <form method="POST" action="{% url 'authority_send_warning' complaint.id %}" class="space-y-3">
+              {% csrf_token %}
+              <textarea name="warning" rows="3"
+                class="w-full border border-amber-200 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400"
+                placeholder="Enter warning message for the hospital..."></textarea>
+              <div class="flex justify-end">
+                <button type="submit"
+                  class="bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-600 transition-colors shadow-sm">
+                  Send Warning
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- VIEW STATUS -->
+        <div class="px-8 py-6 border-t border-zinc-100 bg-zinc-50/50 flex gap-8">
+          <div class="flex items-center gap-2.5">
+            <div
+              class="size-6 rounded-full flex items-center justify-center
+                        {% if complaint.viewed_by_hospital %} bg-teal-100 text-medical-teal {% else %} bg-zinc-200 text-zinc-400 {% endif %}">
+              <span class="material-symbols-outlined text-[14px]">check</span>
+            </div>
+            <span
+              class="text-sm font-bold {% if complaint.viewed_by_hospital %} text-text-main {% else %} text-text-muted {% endif %}">
+              Viewed by Hospital
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2.5">
+            <div
+              class="size-6 rounded-full flex items-center justify-center
+                        {% if complaint.viewed_by_authority %} bg-teal-100 text-medical-teal {% else %} bg-zinc-200 text-zinc-400 {% endif %}">
+              <span class="material-symbols-outlined text-[14px]">check</span>
+            </div>
+            <span
+              class="text-sm font-bold {% if complaint.viewed_by_authority %} text-text-main {% else %} text-text-muted {% endif %}">
+              Viewed by Authority
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</body>
+
+</html>

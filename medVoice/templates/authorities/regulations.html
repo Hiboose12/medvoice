@@ -1,0 +1,42 @@
+{% extends "authorities/authority_base.html" %}
+{% load static %}
+
+{% block title %}Regulations - Health Authority{% endblock %}
+
+{% block header_title %}Healthcare Regulations{% endblock %}
+{% block header_subtitle %}Guidelines and compliance information{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl space-y-6">
+    <div class="bg-white rounded-xl border border-zinc-200 p-6">
+        <h2 class="text-xl font-bold text-text-main mb-4">Healthcare Grievance Regulations</h2>
+        <div class="prose text-text-muted">
+            <p>This section outlines the regulations governing healthcare grievances and the authority's role in monitoring hospital compliance.</p>
+            
+            <h3 class="text-lg font-bold text-text-main mt-6 mb-2">Key Responsibilities</h3>
+            <ul class="list-disc list-inside space-y-2">
+                <li>Monitor hospital response times to patient complaints</li>
+                <li>Escalate complaints not addressed within stipulated timeframes</li>
+                <li>Issue warnings for non-compliance</li>
+                <li>Freeze hospital accounts for severe violations</li>
+                <li>Ensure patient data privacy and confidentiality</li>
+            </ul>
+            
+            <h3 class="text-lg font-bold text-text-main mt-6 mb-2">Response Time Standards</h3>
+            <ul class="list-disc list-inside space-y-2">
+                <li><strong>Initial Response:</strong> Hospitals must acknowledge complaints within 24 hours</li>
+                <li><strong>Full Response:</strong> Detailed response required within 48 hours</li>
+                <li><strong>Resolution:</strong> Complaints should be resolved within 7 days</li>
+            </ul>
+            
+            <h3 class="text-lg font-bold text-text-main mt-6 mb-2">Escalation Criteria</h3>
+            <ul class="list-disc list-inside space-y-2">
+                <li>Hospital fails to view complaint within 24 hours</li>
+                <li>Hospital fails to respond within 48 hours</li>
+                <li>Patient reports unsatisfactory response</li>
+                <li>Complaint severity is marked as "High"</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+<script>
+    (function () {
+        function applyTheme(theme) {
+            const html = document.documentElement;
+            if (theme === 'dark') {
+                html.classList.add('dark');
+            } else if (theme === 'light') {
+                html.classList.remove('dark');
+            } else if (theme === 'system') {
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    html.classList.add('dark');
+                } else {
+                    html.classList.remove('dark');
+                }
+            }
+        }
+
+        // Get theme from Django context or local storage (if guest)
+        // We output the user's theme setting directly into JS
+        const userTheme = "{{ request.user.settings.theme|default:'system' }}";
+        applyTheme(userTheme);
+
+        // Listen for system changes if theme is system
+        if (userTheme === 'system') {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+                if (event.matches) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            });
+        }
+    })();
+</script>

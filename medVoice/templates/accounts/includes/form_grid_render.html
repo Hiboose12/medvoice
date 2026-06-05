@@ -1,0 +1,23 @@
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-5">
+    {% for field in form %}
+    <div
+        class="{% if field.name in 'address_line_1,hospital_address,office_address,hospital_name,authority_name,registration_number,license_number,license_document,appointment_letter,authority_id_document' %}md:col-span-2{% endif %}">
+        <label for="{{ field.id_for_label }}" class="form-label">
+            {{ field.label }}
+            {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+        </label>
+        {{ field }}
+
+        {% if field.help_text %}
+        <p class="mt-1 text-xs text-gray-500">{{ field.help_text }}</p>
+        {% endif %}
+
+        {% if field.errors %}
+        <div class="mt-1 text-xs text-red-600 font-medium flex items-start gap-1">
+            <span class="material-symbols-outlined text-[16px] leading-none mt-0.5">error</span>
+            <span>{{ field.errors.0 }}</span>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>

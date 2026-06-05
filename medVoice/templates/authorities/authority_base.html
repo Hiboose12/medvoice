@@ -1,0 +1,240 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>{% block title %}Health Authority - MedVoice{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "primary-dark": "#0f5a9e",
+                        "background-main": "#f6f7f8",
+                        "medical-teal": "#14b8a6",
+                        "medical-orange": "#f59e0b",
+                        "medical-red": "#ef4444",
+                        "text-main": "#0d141b",
+                        "text-muted": "#4c739a"
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    }
+                },
+            },
+        }
+    </script>
+    <style type="text/tailwindcss">
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Public Sans', sans-serif;
+        }
+        .sidebar-link.active {
+            background-color: #eff6ff; 
+            color: #137fec; 
+            border-right-width: 4px; 
+            border-color: #137fec;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body class="bg-background-main min-h-screen font-display text-text-main flex overflow-hidden">
+    <!-- Authority Sidebar -->
+    <aside class="fixed left-0 top-0 w-[260px] h-screen bg-white border-r border-zinc-200 flex flex-col z-50">
+        <!-- Logo Section -->
+        <div class="p-6 flex items-center gap-3 text-primary border-b border-zinc-100">
+            {% include "includes/medvoice_logo.html" %}
+        </div>
+
+        <!-- Authority Info -->
+        {% if user.is_authenticated and user.role|lower == "authority" %}
+        <div class="p-4 border-b border-zinc-100">
+            <div class="flex items-center gap-3">
+                {% if user.profile.photo %}
+                <img src="{{ user.profile.photo.url }}" class="w-10 h-10 rounded-full object-cover">
+                {% else %}
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary">account_balance</span>
+                </div>
+                {% endif %}
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-text-main truncate">
+                        {% if user.first_name and user.last_name %}
+                        {{ user.first_name }} {{ user.last_name }}
+                        {% else %}
+                        {{ user.username }}
+                        {% endif %}
+                    </p>
+                    <p class="text-xs text-text-muted truncate">Health Authority</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Navigation -->
+        <nav class="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+            <a class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-text-muted hover:bg-zinc-50 hover:text-primary text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'authority_dashboard' %}active{% endif %}"
+                href="{% url 'authority_dashboard' %}">
+                <span class="material-symbols-outlined">dashboard</span>
+                Dashboard
+            </a>
+
+            <a class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-text-muted hover:bg-zinc-50 hover:text-primary text-sm font-semibold transition-all {% if 'complaint' in request.resolver_match.url_name %}active{% endif %}"
+                href="{% url 'authority_complaints' %}">
+                <span class="material-symbols-outlined">assignment</span>
+                Complaints
+            </a>
+
+            <a class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-text-muted hover:bg-zinc-50 hover:text-primary text-sm font-semibold transition-all {% if 'escalation' in request.resolver_match.url_name %}active{% endif %}"
+                href="{% url 'authority_escalations' %}">
+                <span class="material-symbols-outlined">priority_high</span>
+                Escalations
+                {% if active_escalations_count > 0 %}
+                <span class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                    {{  active_escalations_count   }}</span>
+                {% endif %}
+            </a>
+
+            <a class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-text-muted hover:bg-zinc-50 hover:text-primary text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'authority_feed' %}active{% endif %}"
+                href="{% url 'authority_feed' %}">
+                <span class="material-symbols-outlined">feed</span>
+                Community Feed
+            </a>
+
+            <a class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-text-muted hover:bg-zinc-50 hover:text-primary text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'authority_hospitals' %}active{% endif %}"
+                href="{% url 'authority_hospitals' %}">
+                <span class="material-symbols-outlined">local_hospital</span>
+                Hospitals
+            </a>
+
+            <a class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-text-muted hover:bg-zinc-50 hover:text-primary text-sm font-semibold transition-all {% if 'warning' in request.resolver_match.url_name %}active{% endif %}"
+                href="{% url 'authority_warnings' %}">
+                <span class="material-symbols-outlined">warning</span>
+                Warnings
+            </a>
+
+            <a class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-text-muted hover:bg-zinc-50 hover:text-primary text-sm font-semibold transition-all {% if 'notification' in request.resolver_match.url_name %}active{% endif %}"
+                href="{% url 'authority_notifications' %}">
+                <span class="material-symbols-outlined">notifications</span>
+                Notifications
+                {% if unread_notifications_count > 0 %}
+                <span class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                    {{ unread_notifications_count }}</span>
+                {% endif %}
+            </a>
+
+            <a class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-text-muted hover:bg-zinc-50 hover:text-primary text-sm font-semibold transition-all {% if 'chat' in request.resolver_match.url_name %}active{% endif %}"
+                href="{% url 'authority_chat_home' %}">
+                <span class="material-symbols-outlined">chat</span>
+                Chat
+            </a>
+        </nav>
+
+        <!-- Bottom Section -->
+        <div class="p-4 border-t border-zinc-100">
+            <a class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-text-muted hover:bg-zinc-50 hover:text-primary text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'authority_profile' or request.resolver_match.url_name == 'authority_edit_profile' %}active{% endif %}"
+                href="{% url 'authority_profile' %}">
+                <span class="material-symbols-outlined">account_circle</span>
+                Profile
+            </a>
+            <a class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-text-muted hover:bg-zinc-50 hover:text-primary text-sm font-semibold transition-all {% if request.resolver_match.url_name == 'authority_settings' %}active{% endif %}"
+                href="{% url 'authority_settings' %}">
+                <span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button
+                    class="sidebar-link w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-500 hover:bg-red-50 text-sm font-semibold transition-all">
+                    <span class="material-symbols-outlined">logout</span>
+                    Logout
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="ml-[260px] flex-1 h-screen overflow-y-auto hide-scrollbar">
+        <!-- Top Header -->
+        <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-zinc-200 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-text-main">{% block header_title %}Dashboard{% endblock %}</h1>
+                    <p class="text-sm text-text-muted">{% block header_subtitle %}Health Authority Portal{% endblock %}
+                    </p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <!-- Quick Actions -->
+                    {% block quick_actions %}
+                    <button class="p-2 text-text-muted hover:text-primary transition-colors">
+                        <span class="material-symbols-outlined">search</span>
+                    </button>
+                    {% endblock %}
+
+                    <!-- Notifications -->
+                    <a href="{% url 'authority_notifications' %}"
+                        class="relative p-2 text-text-muted hover:text-primary transition-colors">
+                        <span class="material-symbols-outlined">notifications</span>
+                        {% if unread_notifications_count > 0 %}
+                        <span
+                            class="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                            {{ unread_notifications_count }}</span>
+                        {% endif %}
+                    </a>
+
+                    <!-- User Menu -->
+                    <div class="flex items-center gap-2">
+                        {% if user.profile.photo %}
+                        <img src="{{ user.profile.photo.url }}" class="w-8 h-8 rounded-full object-cover">
+                        {% else %}
+                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=137fec&color=fff"
+                            class="w-8 h-8 rounded-full border border-zinc-200">
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <div class="p-6">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Bottom Accent -->
+    <div
+        class="fixed bottom-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-medical-teal to-primary opacity-30 z-[60]">
+    </div>
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

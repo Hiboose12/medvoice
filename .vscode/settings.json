@@ -1,0 +1,11 @@
+{
+    "CodeGPT.apiKey": "Gemini CLI",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/medVoice"
+    ],
+    "python.autoComplete.extraPaths": [
+        "${workspaceFolder}/medVoice"
+    ],
+    "python.defaultInterpreterPath": "${workspaceFolder}/env/Scripts/python.exe",
+    "python.analysis.typeCheckingMode": "off"
+}
