@@ -38,6 +38,34 @@ class Command(BaseCommand):
             "last_name": "User",
             "role": "superadmin",
         },
+        {
+            "username": "hiboose",
+            "email": "hiboosehiba53@gmail.com",
+            "first_name": "Hiboose",
+            "last_name": "Hiba",
+            "role": "patient",
+        },
+        {
+            "username": "AH",
+            "email": "nihal@gmail.com",
+            "first_name": "AH",
+            "last_name": "Hospital",
+            "role": "hospital",
+        },
+        {
+            "username": "krishna",
+            "email": "krishna@gmail.com",
+            "first_name": "Krishna",
+            "last_name": "Nambiyath",
+            "role": "authority",
+        },
+        {
+            "username": "medvoice",
+            "email": "medVoice80@gmail.com",
+            "first_name": "medVoice",
+            "last_name": "Superadmin",
+            "role": "superadmin",
+        },
     ]
 
     def handle(self, *args, **options):
