@@ -26,17 +26,50 @@
                <p class="text-sm leading-normal">Dashboard</p>
             </a>
             <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
-                    {% if request.resolver_match.url_name == 'admin_users' or request.resolver_match.url_name == 'admin_user_activity' %}
+                    {% if request.resolver_match.url_name == 'admin_users' or request.resolver_match.url_name == 'admin_user_activity' or request.resolver_match.url_name == 'sa_user_management' %}
                     bg-primary/10 text-primary font-semibold
                     {% else %}
                     text-[#4c739a] dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0d141b] dark:hover:text-white font-medium
-                    {% endif %}" href="{% url 'admin_users' %}">
+                    {% endif %}" href="{% url 'sa_user_management' %}">
                <span
-                  class="material-symbols-outlined {% if request.resolver_match.url_name == 'admin_users' %}fill-1{% endif %}"
+                  class="material-symbols-outlined"
                   style="font-size: 22px;">group</span>
                <p class="text-sm leading-normal">User Management</p>
             </a>
-            <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
+             <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
+                    {% if request.resolver_match.url_name == 'sa_entity_verification' %}
+                    bg-primary/10 text-primary font-semibold
+                    {% else %}
+                    text-[#4c739a] dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0d141b] dark:hover:text-white font-medium
+                    {% endif %}" href="{% url 'sa_entity_verification' %}">
+               <span
+                  class="material-symbols-outlined"
+                  style="font-size: 22px;">verified</span>
+               <p class="text-sm leading-normal">Entity Verification</p>
+            </a>
+             <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
+                    {% if request.resolver_match.url_name == 'sa_audit_logs' %}
+                    bg-primary/10 text-primary font-semibold
+                    {% else %}
+                    text-[#4c739a] dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0d141b] dark:hover:text-white font-medium
+                    {% endif %}" href="{% url 'sa_audit_logs' %}">
+               <span
+                  class="material-symbols-outlined"
+                  style="font-size: 22px;">history</span>
+               <p class="text-sm leading-normal">Audit Logs</p>
+            </a>
+             <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
+                    {% if request.resolver_match.url_name == 'sa_security_monitoring' %}
+                    bg-primary/10 text-primary font-semibold
+                    {% else %}
+                    text-[#4c739a] dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0d141b] dark:hover:text-white font-medium
+                    {% endif %}" href="{% url 'sa_security_monitoring' %}">
+               <span
+                  class="material-symbols-outlined"
+                  style="font-size: 22px;">security</span>
+               <p class="text-sm leading-normal">Security Monitoring</p>
+            </a>
+             <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
                     {% if request.resolver_match.url_name == 'admin_categories' %}
                     bg-primary/10 text-primary font-semibold
                     {% else %}

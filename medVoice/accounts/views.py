@@ -142,12 +142,16 @@ def patient_dashboard(request):
     return render(request, "patients/dashboard.html", context)
 
 
+from django.views.decorators.csrf import csrf_exempt
 
+@csrf_exempt
 def login_view(request):
     if request.method == "POST":
 
         username = request.POST.get("username")
         password = request.POST.get("password")
+        
+        is_api = request.headers.get('Accept') == 'application/json' or request.POST.get('is_api') == 'true'
 
         # 📧 Allow Login by Email
         if '@' in username:
@@ -165,42 +169,55 @@ def login_view(request):
                 disabled_user = User.objects.get(username=username)
                 if not disabled_user.is_active and disabled_user.check_password(password):
                     if disabled_user.role in ['hospital', 'authority'] and not disabled_user.is_approved:
+                         if is_api:
+                             return JsonResponse({'error': 'Your account is not yet approved. Please wait for admin approval.'}, status=403)
                          messages.error(request, "Your account is not yet approved. Please wait for admin approval.")
                          return render(request, "accounts/login.html")
 
                     # Check for Frozen Status
                     if disabled_user.account_status == 'frozen':
                         request.session['disabled_user_id'] = disabled_user.id
+                        if is_api:
+                             return JsonResponse({'error': 'Account frozen', 'redirect': 'account_frozen'}, status=403)
                         return redirect('account_frozen')
                     
                     # Check for Blocked Status
                     if disabled_user.account_status == 'blocked':
+                        if is_api:
+                             return JsonResponse({'error': 'Your account has been permanently blocked due to violations of our terms.'}, status=403)
                         messages.error(request, "Your account has been permanently blocked due to violations of our terms.")
                         return render(request, "accounts/login.html")
 
                     request.session['disabled_user_id'] = disabled_user.id
+                    if is_api:
+                         return JsonResponse({'error': 'Account disabled', 'redirect': 'account_disabled'}, status=403)
                     return redirect('account_disabled')
             except User.DoesNotExist:
                 pass
 
+            if is_api:
+                return JsonResponse({'error': 'Invalid username or password'}, status=400)
             messages.error(request, "Invalid username or password")
             return render(request, "accounts/login.html")
         
         # 🔒 LOGIN SAFETY CHECK: Block unapproved hospital/authority users
         # Check if user is approved before allowing login
         if user.role in ['hospital', 'authority'] and not user.is_approved:
-            messages.error(request, "Your account is not yet approved. Please wait for admin approval.")
-            return render(request, "accounts/login.html")
-        if user.role in ['hospital', 'authority'] and not user.is_approved:
+            if is_api:
+                return JsonResponse({'error': 'Your account is not yet approved. Please wait for admin approval.'}, status=403)
             messages.error(request, "Your account is not yet approved. Please wait for admin approval.")
             return render(request, "accounts/login.html")
         
         # 🔒 CHECK ACCOUNT STATUS
         if user.account_status == 'frozen':
              request.session['disabled_user_id'] = user.id
+             if is_api:
+                 return JsonResponse({'error': 'Account frozen', 'redirect': 'account_frozen'}, status=403)
              return redirect('account_frozen')
         
         elif user.account_status == 'blocked':
+             if is_api:
+                 return JsonResponse({'error': 'Your account has been permanently blocked.'}, status=403)
              messages.error(request, "Your account has been permanently blocked.")
              return render(request, "accounts/login.html")
         
@@ -219,26 +236,36 @@ def login_view(request):
 
         # 🔑 SUPERADMIN
         if user.role == "superadmin":
+            if is_api:
+                return JsonResponse({'status': 'success', 'role': user.role}, status=200)
             return redirect("admin_dashboard")
         
         if user.role == "hospital":
+            if is_api:
+                return JsonResponse({'status': 'success', 'role': user.role}, status=200)
             next_url = request.GET.get('next')
             if next_url and is_safe_url(request, next_url, allowed_hosts={request.get_host()}):
                 return redirect(next_url)
             return redirect("hospital_dashboard")
 
         if user.role == "authority":
+            if is_api:
+                return JsonResponse({'status': 'success', 'role': user.role}, status=200)
             next_url = request.GET.get('next')
             if next_url and is_safe_url(request, next_url, allowed_hosts={request.get_host()}):
                 return redirect(next_url)
             return redirect("authority_dashboard")
         
         if user.role == "patient":
+            if is_api:
+                return JsonResponse({'status': 'success', 'role': user.role}, status=200)
             next_url = request.GET.get('next')
             if next_url and is_safe_url(request, next_url, allowed_hosts={request.get_host()}):
                 return redirect(next_url)
             return redirect("patient_dashboard")
         # ✅ APPROVED NORMAL USERS
+        if is_api:
+            return JsonResponse({'error': 'Invalid user role'}, status=400)
         messages.error(request, "Invalid user role")
         return redirect("login")
         
@@ -323,9 +350,12 @@ def validate_email(request):
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request'})
 
+@csrf_exempt
 def register_view(request):
     if request.method == "POST":
         role = request.POST.get("role")
+        
+        is_api = request.headers.get('Accept') == 'application/json' or request.POST.get('is_api') == 'true'
         
         if role == 'patient':
             form = PatientRegistrationForm(request.POST, request.FILES)
@@ -334,6 +364,8 @@ def register_view(request):
         elif role == 'authority':
             form = AuthorityRegistrationForm(request.POST, request.FILES)
         else:
+            if is_api:
+                return JsonResponse({'error': 'Invalid role selected.'}, status=400)
             messages.error(request, "Invalid role selected.")
             return render(request, "accounts/register.html", {
                 "patient_form": PatientRegistrationForm(),
@@ -352,6 +384,8 @@ def register_view(request):
             # 1. Email check (Covered by model unique, but good to be explicit for different variants)
             email = cleaned_data.get('email')
             if User.objects.filter(email__iexact=email, account_status='blocked').exists():
+                 if is_api:
+                     return JsonResponse({'error': 'Registration failed: This email is associated with a blocked account.'}, status=400)
                  messages.error(request, "Registration failed: This email is associated with a blocked account.")
                  return render(request, "accounts/register.html", {
                     "patient_form": form if role == 'patient' else PatientRegistrationForm(),
@@ -381,6 +415,8 @@ def register_view(request):
                  phone_to_check = cleaned_data.get('official_phone')
 
             if phone_to_check and User.objects.filter(phone_number=phone_to_check, account_status='blocked').exists():
+                 if is_api:
+                     return JsonResponse({'error': 'Registration failed: This phone number is associated with a blocked account.'}, status=400)
                  messages.error(request, "Registration failed: This phone number is associated with a blocked account.")
                  return render(request, "accounts/register.html", {
                     "patient_form": form if role == 'patient' else PatientRegistrationForm(),
@@ -393,6 +429,8 @@ def register_view(request):
             if role == 'patient':
                  govt_id_num = cleaned_data.get('govt_id_number')
                  if govt_id_num and User.objects.filter(govt_id_number=govt_id_num, account_status='blocked').exists():
+                     if is_api:
+                         return JsonResponse({'error': 'Registration failed: This Government ID is associated with a blocked account.'}, status=400)
                      messages.error(request, "Registration failed: This Government ID is associated with a blocked account.")
                      return render(request, "accounts/register.html", {
                         "patient_form": form if role == 'patient' else PatientRegistrationForm(),
@@ -496,6 +534,8 @@ def register_view(request):
                     else:
                         messages.success(request, f"Registration successful! Please check your email to activate your account. Your {role} account is pending admin approval.")
                 
+                if is_api:
+                    return JsonResponse({'status': 'success', 'message': 'Registration successful. Please check your email.'}, status=201)
                 return redirect("login")
                 
             except Exception as e:
@@ -503,6 +543,8 @@ def register_view(request):
                 import traceback
                 print(f"Registration error: {e}")
                 print(traceback.format_exc())
+                if is_api:
+                    return JsonResponse({'error': f'Registration failed: {str(e)}'}, status=500)
                 messages.error(request, f"An error occurred during registration: {str(e)}")
                 # Re-render form with errors - preserve user input
                 return render(request, "accounts/register.html", {
@@ -513,7 +555,16 @@ def register_view(request):
                 })
         else:
             # Form is invalid - show errors and log them
-            print(f"Form errors: {form.errors}")
+            import json
+            print("================ DEBUG FORM INVALID ================")
+            print(form.errors.as_json())
+            print(request.POST)
+            print(request.FILES)
+            print("====================================================")
+            
+            if is_api:
+                return JsonResponse({'error': json.loads(form.errors.as_json())}, status=400)
+                
             messages.error(request, "Please correct the errors below.")
             return render(request, "accounts/register.html", {
                 "patient_form": form if role == 'patient' else PatientRegistrationForm(),
@@ -1025,8 +1076,17 @@ def admin_profile(request):
     })
 
 
+def _wants_json(request):
+    return (
+        request.headers.get("Accept") == "application/json"
+        or request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        or request.GET.get("format") == "json"
+        or request.content_type == "application/json"
+    )
+
 @login_required
 def patient_settings(request):
+    from django.http import JsonResponse
     # ---- SETTINGS OBJECT (safe create) ----
     settings_obj, _ = PatientSettings.objects.get_or_create(user=request.user)
 
@@ -1034,6 +1094,26 @@ def patient_settings(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
 
     if request.method == "POST":
+        if _wants_json(request):
+            import json
+            try:
+                data = json.loads(request.body)
+            except Exception:
+                data = {}
+            settings_obj.email_notifications = data.get("email_notifications", settings_obj.email_notifications)
+            settings_obj.complaint_status_updates = data.get("complaint_status_updates", settings_obj.complaint_status_updates)
+            settings_obj.new_messages = data.get("new_messages", settings_obj.new_messages)
+            settings_obj.authority_responses = data.get("authority_responses", settings_obj.authority_responses)
+            settings_obj.show_in_feed = data.get("show_in_feed", settings_obj.show_in_feed)
+            settings_obj.anonymous_posting = data.get("anonymous_posting", settings_obj.anonymous_posting)
+            settings_obj.show_resolved_publicly = data.get("show_resolved_publicly", settings_obj.show_resolved_publicly)
+            settings_obj.hide_profile = data.get("hide_profile", settings_obj.hide_profile)
+            settings_obj.allow_hospital_contact = data.get("allow_hospital_contact", settings_obj.allow_hospital_contact)
+            settings_obj.allow_escalation = data.get("allow_escalation", settings_obj.allow_escalation)
+            settings_obj.theme = data.get("theme", settings_obj.theme)
+            settings_obj.save()
+            return JsonResponse({"status": "success", "message": "Settings updated"})
+
         user = request.user
 
         # ==============================
@@ -1122,6 +1202,21 @@ def patient_settings(request):
 
         messages.success(request, "Settings updated successfully.")
         return redirect("profile")
+
+    if _wants_json(request):
+        return JsonResponse({
+            "email_notifications": settings_obj.email_notifications,
+            "complaint_status_updates": settings_obj.complaint_status_updates,
+            "new_messages": settings_obj.new_messages,
+            "authority_responses": settings_obj.authority_responses,
+            "show_in_feed": settings_obj.show_in_feed,
+            "anonymous_posting": settings_obj.anonymous_posting,
+            "show_resolved_publicly": settings_obj.show_resolved_publicly,
+            "hide_profile": settings_obj.hide_profile,
+            "allow_hospital_contact": settings_obj.allow_hospital_contact,
+            "allow_escalation": settings_obj.allow_escalation,
+            "theme": settings_obj.theme,
+        })
 
     return render(
         request,
@@ -1212,6 +1307,9 @@ def reply_to_notification(request, notification_id):
         support_ticket=notification.support_ticket,
         message=message
     )
+    if notification.support_ticket:
+        notification.support_ticket.status = 'open'
+        notification.support_ticket.save()
     messages.success(request, "Your response has been sent.")
     return redirect("patient_notifications")
 
@@ -1869,3 +1967,59 @@ def admin_notifications(request):
 
     notifications = Notification.objects.filter(recipient=request.user).order_by("-created_at")
     return render(request, "accounts/admin_notifications.html", {"notifications": notifications})
+
+
+def current_user_api(request):
+    """JSON endpoint returning current user's basic info."""
+    import traceback
+    try:
+        from django.http import JsonResponse
+        if not request.user.is_authenticated:
+            return JsonResponse({'error': 'Authentication required'}, status=401)
+
+        return JsonResponse({
+            'id': request.user.id,
+            'username': request.user.username,
+            'email': request.user.email,
+            'first_name': request.user.first_name,
+            'last_name': request.user.last_name,
+            'role': request.user.role,
+            'is_approved': request.user.is_approved,
+        })
+    except Exception as e:
+        from django.http import JsonResponse
+        print("ERROR IN current_user_api:", str(e))
+        traceback.print_exc()
+        return JsonResponse({'error': f"Internal Server Error: {str(e)}"}, status=500)
+
+def csrf_token_view(request):
+    """Returns the CSRF token in a JSON response for Flutter Web."""
+    from django.middleware.csrf import get_token
+    from django.http import JsonResponse
+    return JsonResponse({'csrfToken': get_token(request)})
+@login_required
+def api_change_password(request):
+    if request.method == "POST":
+        import json
+        try:
+            # Handle both JSON and form data
+            if request.content_type == "application/json":
+                data = json.loads(request.body)
+            else:
+                data = request.POST
+                
+            old_password = data.get("old_password")
+            new_password = data.get("new_password1") or data.get("new_password")
+            
+            if not request.user.check_password(old_password):
+                return JsonResponse({"error": "Incorrect old password"}, status=400)
+            
+            request.user.set_password(new_password)
+            request.user.save()
+            from django.contrib.auth import update_session_auth_hash
+            update_session_auth_hash(request, request.user)
+            return JsonResponse({"message": "Password updated successfully"})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+

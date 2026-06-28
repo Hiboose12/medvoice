@@ -387,21 +387,12 @@
           <h3 class="text-lg font-bold mb-4 text-text-main">Supporting Evidence</h3>
           <div class="bg-zinc-50 rounded-xl border border-zinc-100 overflow-hidden">
             {% with complaint.evidence.url|lower as file %}
-            {% if ".jpg" in file or ".png" in file or ".jpeg" in file or ".webp" in file %}
-            <img src="{{ complaint.evidence.url }}" class="w-full max-h-[500px] object-contain bg-zinc-900" />
-            {% elif ".mp4" in file or ".webm" in file %}
+            {% if ".mp4" in file or ".webm" in file %}
             <video controls class="w-full bg-black max-h-[500px]">
               <source src="{{ complaint.evidence.url }}">
             </video>
             {% else %}
-            <div class="p-8 flex flex-col items-center justify-center gap-3">
-              <span class="material-symbols-outlined text-4xl text-text-muted">description</span>
-              <p class="text-sm font-bold text-text-main">{{ complaint.evidence.name }}</p>
-              <a href="{{ complaint.evidence.url }}" target="_blank"
-                class="px-4 py-2 bg-white border border-zinc-200 rounded-lg text-sm font-bold text-primary hover:bg-blue-50 transition-colors shadow-sm">
-                Download attached file
-              </a>
-            </div>
+            <img src="{{ complaint.evidence.url }}" class="w-full max-h-[500px] object-contain bg-zinc-900" />
             {% endif %}
             {% endwith %}
           </div>

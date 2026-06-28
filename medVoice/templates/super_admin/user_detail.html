@@ -1,0 +1,101 @@
+{% extends "accounts/admin_base.html" %}
+{% block title %}User Details{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center gap-2 text-sm text-text-muted dark:text-gray-400">
+    <a class="hover:text-primary transition-colors" href="{% url 'sa_user_management' %}">User Management</a>
+    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+    <span class="font-medium text-text-main dark:text-white">User Details</span>
+</div>
+
+<div class="bg-white dark:bg-[#1a2632] border border-[#cfdbe7] dark:border-gray-800 rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex items-start gap-4 mb-6">
+        <div class="bg-primary/10 text-primary flex items-center justify-center rounded-full size-12 overflow-hidden">
+            {% if target_user.profile_picture_url %}
+            <img src="{{ target_user.profile_picture_url }}" class="size-12 rounded-full object-cover" alt="">
+            {% else %}
+            <span class="material-symbols-outlined text-2xl">person</span>
+            {% endif %}
+        </div>
+        <div>
+            <h1 class="text-text-main dark:text-white text-xl font-bold">{{ target_user.first_name }} {{ target_user.last_name }}</h1>
+            <p class="text-text-muted dark:text-gray-400 text-sm">{{ target_user.username }} | {{ target_user.email }}</p>
+            <p class="text-text-muted dark:text-gray-400 text-xs mt-1">Role: {{ target_user.role|title }} | Status: {{ target_user.account_status|title }}</p>
+        </div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+            <p class="text-xs text-text-muted dark:text-gray-400">Phone</p>
+            <p class="text-sm font-medium text-text-main dark:text-white">{{ target_user.phone_number|default:"Not set" }}</p>
+        </div>
+        <div class="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+            <p class="text-xs text-text-muted dark:text-gray-400">Joined</p>
+            <p class="text-sm font-medium text-text-main dark:text-white">{{ target_user.date_joined|date:"M d, Y" }}</p>
+        </div>
+        <div class="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+            <p class="text-xs text-text-muted dark:text-gray-400">Active</p>
+            <p class="text-sm font-medium">{{ target_user.is_active|yesno:"Yes,No" }}</p>
+        </div>
+        <div class="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+            <p class="text-xs text-text-muted dark:text-gray-400">Approved</p>
+            <p class="text-sm font-medium">{{ target_user.is_approved|yesno:"Yes,No" }}</p>
+        </div>
+    </div>
+</div>
+
+{% if hospital_profile %}
+<div class="bg-white dark:bg-[#1a2632] border border-[#cfdbe7] dark:border-gray-800 rounded-xl shadow-sm p-6 mb-6">
+    <h2 class="text-text-main dark:text-white text-lg font-bold mb-4">Hospital Profile</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div><p class="text-xs text-text-muted dark:text-gray-400">Hospital Name</p><p class="text-sm font-medium">{{ hospital_profile.hospital_name }}</p></div>
+        <div><p class="text-xs text-text-muted dark:text-gray-400">Type</p><p class="text-sm font-medium capitalize">{{ hospital_profile.hospital_type }}</p></div>
+        <div><p class="text-xs text-text-muted dark:text-gray-400">Status</p><p class="text-sm font-medium">{{ hospital_profile.status|title }}</p></div>
+        <div><p class="text-xs text-text-muted dark:text-gray-400">Registration No.</p><p class="text-sm font-medium">{{ hospital_profile.registration_number }}</p></div>
+        <div><p class="text-xs text-text-muted dark:text-gray-400">License No.</p><p class="text-sm font-medium">{{ hospital_profile.license_number }}</p></div>
+        <div><p class="text-xs text-text-muted dark:text-gray-400">District</p><p class="text-sm font-medium">{{ hospital_profile.district }}</p></div>
+    </div>
+</div>
+{% endif %}
+
+{% if authority_profile %}
+<div class="bg-white dark:bg-[#1a2632] border border-[#cfdbe7] dark:border-gray-800 rounded-xl shadow-sm p-6 mb-6">
+    <h2 class="text-text-main dark:text-white text-lg font-bold mb-4">Authority Profile</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div><p class="text-xs text-text-muted dark:text-gray-400">Authority Name</p><p class="text-sm font-medium">{{ authority_profile.authority_name }}</p></div>
+        <div><p class="text-xs text-text-muted dark:text-gray-400">Type</p><p class="text-sm font-medium">{{ authority_profile.authority_type }}</p></div>
+        <div><p class="text-xs text-text-muted dark:text-gray-400">Department</p><p class="text-sm font-medium">{{ authority_profile.department_name }}</p></div>
+    </div>
+</div>
+{% endif %}
+
+{% if verification %}
+<div class="bg-white dark:bg-[#1a2632] border border-[#cfdbe7] dark:border-gray-800 rounded-xl shadow-sm p-6">
+    <h2 class="text-text-main dark:text-white text-lg font-bold mb-4">Verification Profile</h2>
+    {% if verification.govt_id %}
+    <p class="text-sm mb-2"><span class="text-text-muted dark:text-gray-400">Govt ID:</span> <a href="{{ verification.govt_id.url }}" class="text-primary hover:underline" target="_blank">View Document</a></p>
+    {% endif %}
+    {% if verification.hospital_license %}
+    <p class="text-sm mb-2"><span class="text-text-muted dark:text-gray-400">Hospital License:</span> <a href="{{ verification.hospital_license.url }}" class="text-primary hover:underline" target="_blank">View Document</a></p>
+    {% endif %}
+    {% if verification.authority_id %}
+    <p class="text-sm mb-2"><span class="text-text-muted dark:text-gray-400">Authority ID:</span> <a href="{{ verification.authority_id.url }}" class="text-primary hover:underline" target="_blank">View Document</a></p>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="mt-6 flex gap-3">
+    <form method="post" action="{% url 'sa_modify_user_status' target_user.id %}" class="inline">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="{% if target_user.is_active %}disable{% else %}enable{% endif %}">
+        <button type="submit" class="px-4 py-2 border border-red-300 text-red-600 rounded-lg text-sm hover:bg-red-50 transition-colors">
+            {% if target_user.is_active %}Disable Account{% else %}Enable Account{% endif %}
+        </button>
+    </form>
+    <form method="post" action="{% url 'sa_modify_user_status' target_user.id %}" class="inline">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="freeze">
+        <input type="hidden" name="reason" value="Admin action from user detail">
+        <button type="submit" class="px-4 py-2 border border-amber-300 text-amber-600 rounded-lg text-sm hover:bg-amber-50 transition-colors">Freeze Account</button>
+    </form>
+    <a href="{% url 'sa_user_management' %}" class="px-4 py-2 border border-[#cfdbe7] rounded-lg text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Back to List</a>
+</div>
+{% endblock %}

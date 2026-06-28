@@ -1,0 +1,64 @@
+{% extends "accounts/admin_base.html" %}
+{% block title %}Entity Verification{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center gap-2 text-sm text-text-muted dark:text-gray-400">
+    <a class="hover:text-primary transition-colors" href="{% url 'admin_dashboard' %}">Home</a>
+    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+    <span class="font-medium text-text-main dark:text-white">Entity Verification</span>
+</div>
+
+<form method="get" class="mb-6 flex flex-wrap gap-3">
+    <input type="text" name="search" value="{{ search_query }}" placeholder="Search entities..."
+           class="px-4 py-2 border border-[#cfdbe7] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
+    <select name="verification" class="px-4 py-2 border border-[#cfdbe7] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
+        <option value="all" {% if verification_filter == 'all' %}selected{% endif %}>All Entities</option>
+        <option value="hospitals" {% if verification_filter == 'hospitals' %}selected{% endif %}>Hospitals</option>
+        <option value="authorities" {% if verification_filter == 'authorities' %}selected{% endif %}>Authorities</option>
+    </select>
+    <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors">Filter</button>
+</form>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    {% for item in items %}
+    <div class="bg-white dark:bg-[#1a2632] border border-[#cfdbe7] dark:border-gray-800 rounded-xl shadow-sm p-6">
+        <div class="flex items-start justify-between mb-4">
+            <div>
+                <h3 class="text-text-main dark:text-white font-bold">{{ item.user.first_name|default:item.user.username }}</h3>
+                <p class="text-text-muted dark:text-gray-400 text-xs">{{ item.user.email }}</p>
+                <p class="text-text-muted dark:text-gray-500 text-xs mt-1">Type: {{ item.user.role|title }} | Status: {{ item.status|default:"pending" }} | Joined: {{ item.user.date_joined|date:"M d, Y" }}</p>
+            </div>
+            <span class="px-2.5 py-1 rounded-full text-xs font-medium
+                {% if item.status == 'verified' %}bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300
+                {% else %}bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300{% endif %}">
+                {{ item.status|default:"pending" }}
+            </span>
+        </div>
+        <div class="text-sm text-text-muted dark:text-gray-400 mb-4">
+            {% if item.user.role == 'hospital' %}
+            <p>Hospital: {{ item.hospital_name }}</p>
+            <p>Type: {{ item.hospital_type }} | District: {{ item.district }} | State: {{ item.state }}</p>
+            {% elif item.user.role == 'authority' %}
+            <p>Authority: {{ item.authority_name }}</p>
+            <p>Type: {{ item.authority_type }} | Dept: {{ item.department_name }}</p>
+            {% else %}
+            <p>User ID: {{ item.user.id }}</p>
+            {% endif %}
+        </div>
+        <form method="post" action="{% url 'sa_verify_entity' item.user.role item.id %}" class="flex gap-2">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="approve">
+            <input type="text" name="reason" placeholder="Reason (optional)" class="flex-1 px-3 py-1.5 text-sm border border-[#cfdbe7] rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20">
+            <button type="submit" class="px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition-colors">Approve</button>
+        </form>
+        <form method="post" action="{% url 'sa_verify_entity' item.user.role item.id %}" class="flex gap-2 mt-2">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reject">
+            <input type="text" name="reason" placeholder="Rejection reason" class="flex-1 px-3 py-1.5 text-sm border border-[#cfdbe7] rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/20">
+            <button type="submit" class="px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors">Reject</button>
+        </form>
+    </div>
+    {% empty %}
+    <div class="lg:col-span-2 p-8 text-center text-text-muted dark:text-gray-500">No entities pending verification.</div>
+    {% endfor %}
+</div>
+{% endblock %}

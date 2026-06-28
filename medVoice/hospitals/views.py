@@ -7,7 +7,7 @@ from django.contrib.auth import update_session_auth_hash
 from django.utils import timezone
 from django.conf import settings
 from django.urls import reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 import csv
 import re
 from accounts.models import Notification, User
@@ -92,6 +92,32 @@ def hospital_dashboard(request):
         "current_freeze": current_freeze,
     }
 
+    if request.headers.get('Accept') == 'application/json' or request.GET.get('format') == 'json':
+        recent_list = []
+        for c in context["recent_complaints"]:
+            recent_list.append({
+                'id': c.id,
+                'title': c.title,
+                'description': c.description,
+                'status': c.status,
+                'created_at': c.created_at.isoformat(),
+                'category': c.category,
+                'severity': c.severity,
+                'escalated': c.escalated_to_authority,
+            })
+        return JsonResponse({
+            "display_name": display_name,
+            "display_email": display_email,
+            "total_complaints": context["total_complaints"],
+            "open_complaints": context["open_complaints"],
+            "active_complaints": context["active_complaints"],
+            "responded_complaints": context["responded_complaints"],
+            "resolved_complaints": context["resolved_complaints"],
+            "recent_complaints": recent_list,
+            "unread_notifications": context["unread_notifications"],
+            "is_frozen": current_freeze is not None,
+        })
+
     return render(request, "hospitals/dashboard.html", context)
 
 
@@ -144,6 +170,28 @@ def hospital_complaints(request):
         "resolved_count": Complaint.objects.filter(hospital=request.user, status='resolved').count(),
         "total_count": Complaint.objects.filter(hospital=request.user).count(),
     }
+
+    if request.headers.get('Accept') == 'application/json' or request.GET.get('format') == 'json':
+        complaints_list = []
+        for c in complaints:
+            complaints_list.append({
+                'id': c.id,
+                'title': c.title,
+                'description': c.description,
+                'status': c.status,
+                'created_at': c.created_at.isoformat(),
+                'category': c.category,
+                'severity': c.severity,
+                'escalated': c.escalated_to_authority,
+            })
+        return JsonResponse({
+            "complaints": complaints_list,
+            "new_count": context["new_count"],
+            "review_count": context["review_count"],
+            "responded_count": context["responded_count"],
+            "resolved_count": context["resolved_count"],
+            "total_count": context["total_count"],
+        })
 
     return render(
         request,

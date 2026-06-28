@@ -85,7 +85,7 @@ class HospitalFeedTest(TestCase):
         response = self.client.get(reverse('hospital_feed'))
         
         # Should contain "View Details & Manage"
-        self.assertContains(response, "View Details &amp; Manage")
+        self.assertContains(response, "View Details & Manage")
         self.assertContains(response, reverse('complaint_detail', args=[self.assigned_complaint.id]))
 
         # Should NOT contain inline actions

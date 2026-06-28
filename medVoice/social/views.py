@@ -14,6 +14,47 @@ from .models import Conversation, Message, SupportTicket
 
 # Create your views here.
 
+def _wants_json(request):
+    return (
+        request.headers.get("Accept") == "application/json"
+        or request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        or request.GET.get("format") == "json"
+    )
+
+
+def _participant_name(user, viewer):
+    if user.role == 'patient' and user.is_anonymous_public and viewer.role != 'superadmin':
+        return "Anonymous User"
+    if user.role == 'hospital' and hasattr(user, 'hospital_profile'):
+        return user.hospital_profile.hospital_name
+    if user.role == 'authority' and hasattr(user, 'authority_profile'):
+        return user.authority_profile.authority_name
+    return user.get_full_name() or user.username
+
+
+def _conversation_payload(conversation, viewer):
+    other_user = conversation.participants.exclude(id=viewer.id).first()
+    latest = conversation.messages.order_by("-created_at").first()
+    unread_count = conversation.messages.filter(receiver=viewer, is_read=False).count()
+    return {
+        "id": conversation.id,
+        "other_user": {
+            "id": other_user.id,
+            "name": _participant_name(other_user, viewer),
+            "role": other_user.role,
+            "is_online": bool(other_user.last_seen and (timezone.now() - other_user.last_seen).total_seconds() < 60),
+        } if other_user else None,
+        "complaint": {
+            "id": conversation.complaint.id,
+            "title": conversation.complaint.title,
+            "status": conversation.complaint.status,
+        } if conversation.complaint else None,
+        "last_message": latest.content if latest else "",
+        "last_message_at": latest.created_at.isoformat() if latest else conversation.updated_at.isoformat(),
+        "unread_count": unread_count,
+        "updated_at": conversation.updated_at.isoformat(),
+    }
+
 def support(request):
     return render(request, "social/support.html")
 
@@ -133,6 +174,15 @@ def _render_chat(request, template_name, conversation_id=None):
 
              messages_list = active_conversation.messages.order_by("created_at")
 
+    if _wants_json(request):
+        return JsonResponse({
+            "conversations": [
+                _conversation_payload(conversation, request.user)
+                for conversation in conversations
+            ],
+            "active_conversation_id": active_conversation.id if active_conversation else None,
+        })
+
     return render(request, template_name, {
         "conversations": conversations,
         "active_conversation": active_conversation,
@@ -195,23 +245,30 @@ def search_users(request):
             Q(username__icontains=query) |
             Q(first_name__icontains=query) |
             Q(last_name__icontains=query)
-        ).exclude(id=request.user.id)[:10]
+        ).exclude(id=request.user.id)
     else:
-        # TODO: Better suggestions based on role
-        users = User.objects.exclude(id=request.user.id)[:10]
+        users = User.objects.exclude(id=request.user.id)
+
+    # Exclude anonymous patients for non-admins
+    if request.user.role != 'superadmin':
+        users = users.exclude(role='patient', settings__anonymous_posting=True)
+
+    users = users[:10]
 
     results = []
     for user in users:
         # Anonymize if needed
         full_name = user.get_full_name() or user.username
+        username = user.username
         if user.role == 'patient' and user.is_anonymous_public and request.user.role != 'superadmin':
              full_name = "Anonymous User"
+             username = "anonymous"
         elif user.role == 'hospital' and hasattr(user, 'hospital_profile'):
              full_name = user.hospital_profile.hospital_name
              
         results.append({
             "id": user.id,
-            "username": user.username, 
+            "username": username, 
             "full_name": full_name,
             "role": user.role,
         })
@@ -232,6 +289,12 @@ def start_chat(request, user_id):
     if not conversation:
         conversation = Conversation.objects.create(complaint=None)
         conversation.participants.add(request.user, other_user)
+
+    if _wants_json(request):
+        return JsonResponse({
+            "success": True,
+            "conversation": _conversation_payload(conversation, request.user),
+        })
     
     if request.user.role == "hospital":
         return redirect("hospital_chat_room", conversation_id=conversation.id)
@@ -302,6 +365,12 @@ def start_complaint_chat(request, complaint_id):
         if not conversation.complaint:
             conversation.complaint = complaint
             conversation.save(update_fields=['complaint'])
+
+    if _wants_json(request):
+        return JsonResponse({
+            "success": True,
+            "conversation": _conversation_payload(conversation, request.user),
+        })
 
     if request.user.role == "hospital":
         return redirect("hospital_chat_room", conversation_id=conversation.id)

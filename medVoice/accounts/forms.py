@@ -69,7 +69,7 @@ class PatientRegistrationForm(BaseRegistrationForm):
         widget=forms.TextInput(attrs={'class': 'form-input'})
     )
     govt_id_document = forms.FileField(
-        required=True,
+        required=False,
         widget=forms.FileInput(attrs={'class': 'form-input file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100'})
     )
 
@@ -83,7 +83,7 @@ class HospitalRegistrationForm(BaseRegistrationForm):
     hospital_type = forms.ChoiceField(choices=Hospital.TYPE_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}))
     registration_number = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-input'}))
     license_number = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-input'}))
-    license_document = forms.FileField(widget=forms.FileInput(attrs={'class': 'form-input'}))
+    license_document = forms.FileField(required=False, widget=forms.FileInput(attrs={'class': 'form-input'}))
 
     # Hospital Contact
     hospital_address = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-input', 'rows': 3}))
@@ -124,8 +124,8 @@ class AuthorityRegistrationForm(BaseRegistrationForm):
     official_email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-input'}))
     official_phone = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-input'}))
 
-    appointment_letter = forms.FileField(widget=forms.FileInput(attrs={'class': 'form-input'}))
-    authority_id_document = forms.FileField(widget=forms.FileInput(attrs={'class': 'form-input'}))
+    appointment_letter = forms.FileField(required=False, widget=forms.FileInput(attrs={'class': 'form-input'}))
+    authority_id_document = forms.FileField(required=False, widget=forms.FileInput(attrs={'class': 'form-input'}))
 
 
 # --- Update Forms ---

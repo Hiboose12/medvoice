@@ -152,7 +152,13 @@ def authority_dashboard(request):
     # Frozen hospitals count
     frozen_hospitals = HospitalFreeze.objects.filter(
         hospital_id__in=hospital_ids,
-        status='frozen'
+        status__in=['frozen', 'permanently_blocked']
+    ).count()
+    
+    # Pending appeals count
+    pending_appeals = HospitalFreeze.objects.filter(
+        hospital_id__in=hospital_ids,
+        status='pending_review'
     ).count()
     
     context = {
@@ -164,8 +170,34 @@ def authority_dashboard(request):
         'recent_escalations': recent_escalations,
         'unread_notifications': unread_notifications,
         'frozen_hospitals': frozen_hospitals,
+        'pending_appeals': pending_appeals,
     }
     
+    if request.headers.get('Accept') == 'application/json' or request.GET.get('format') == 'json':
+        recent_list = []
+        for c in recent_escalations:
+            recent_list.append({
+                'id': c.id,
+                'title': c.title,
+                'description': c.description,
+                'status': c.status,
+                'created_at': c.created_at.isoformat(),
+                'category': c.category,
+                'severity': c.severity,
+                'hospital_name': c.hospital.hospital_profile.hospital_name if hasattr(c.hospital, 'hospital_profile') else c.hospital.username,
+                'escalated': c.escalated_to_authority,
+            })
+        return JsonResponse({
+            'total_hospitals': total_hospitals,
+            'active_complaints': active_complaints,
+            'escalated_complaints': escalated_complaints,
+            'resolved_complaints': resolved_complaints,
+            'hospitals_with_warnings': hospitals_with_warnings,
+            'recent_escalations': recent_list,
+            'unread_notifications': unread_notifications,
+            'frozen_hospitals': frozen_hospitals,
+        })
+        
     return render(request, "authorities/dashboard.html", context)
 
 
@@ -213,6 +245,28 @@ def authority_complaints(request):
         'escalated_count': escalated_count,
     }
     
+    if request.headers.get('Accept') == 'application/json' or request.GET.get('format') == 'json':
+        complaints_list = []
+        for c in complaints:
+            complaints_list.append({
+                'id': c.id,
+                'title': c.title,
+                'description': c.description,
+                'status': c.status,
+                'created_at': c.created_at.isoformat(),
+                'category': c.category,
+                'severity': c.severity,
+                'hospital_name': c.hospital.hospital_profile.hospital_name if hasattr(c.hospital, 'hospital_profile') else c.hospital.username,
+                'escalated': c.escalated_to_authority,
+            })
+        return JsonResponse({
+            'complaints': complaints_list,
+            'status_filter': status_filter,
+            'severity_filter': severity_filter,
+            'search_query': search_query,
+            'escalated_count': escalated_count,
+        })
+        
     return render(request, "authorities/complaints.html", context)
 
 
@@ -241,6 +295,34 @@ def authority_escalations(request):
         'complaints': escalated_complaints,
     }
     
+    if request.headers.get('Accept') == 'application/json' or request.GET.get('format') == 'json':
+        escalated_list = []
+        for c in escalated_complaints:
+            logs = []
+            for l in getattr(c, 'activity_logs_data', []):
+                logs.append({
+                    'id': l.id,
+                    'activity_type': l.activity_type,
+                    'performed_by': l.performed_by.username if l.performed_by else 'System',
+                    'description': l.description,
+                    'created_at': l.created_at.isoformat(),
+                })
+            escalated_list.append({
+                'id': c.id,
+                'title': c.title,
+                'description': c.description,
+                'status': c.status,
+                'created_at': c.created_at.isoformat(),
+                'category': c.category,
+                'severity': c.severity,
+                'hospital_name': c.hospital.hospital_profile.hospital_name if hasattr(c.hospital, 'hospital_profile') else c.hospital.username,
+                'escalated': c.escalated_to_authority,
+                'activity_logs': logs,
+            })
+        return JsonResponse({
+            'complaints': escalated_list,
+        })
+        
     return render(request, "authorities/escalations.html", context)
 
 
@@ -297,6 +379,42 @@ def authority_complaint_detail(request, complaint_id):
         'hospital_profile': hospital_profile,
     }
     
+    if request.headers.get('Accept') == 'application/json' or request.GET.get('format') == 'json':
+        response_list = []
+        for r in responses:
+            response_list.append({
+                'id': r.id,
+                'hospital_name': r.hospital.hospital_profile.hospital_name if hasattr(r.hospital, 'hospital_profile') else r.hospital.username,
+                'message': r.message,
+                'created_at': r.created_at.isoformat(),
+            })
+        logs_list = []
+        for log in activity_logs:
+            logs_list.append({
+                'id': log.id,
+                'activity_type': log.activity_type,
+                'performed_by': log.performed_by.username if log.performed_by else 'System',
+                'description': log.description,
+                'created_at': log.created_at.isoformat(),
+            })
+        return JsonResponse({
+            'complaint': {
+                'id': complaint.id,
+                'title': complaint.title,
+                'description': complaint.description,
+                'status': complaint.status,
+                'created_at': complaint.created_at.isoformat(),
+                'category': complaint.category,
+                'severity': complaint.severity,
+                'hospital_name': complaint.hospital.hospital_profile.hospital_name if hasattr(complaint.hospital, 'hospital_profile') else complaint.hospital.username,
+                'escalated': complaint.escalated_to_authority,
+                'viewed_by_authority': complaint.viewed_by_authority,
+                'evidence': complaint.evidence.url if complaint.evidence else None,
+            },
+            'responses': response_list,
+            'activity_logs': logs_list,
+        })
+        
     return render(request, "authorities/complaint_detail.html", context)
 
 
@@ -348,6 +466,27 @@ def authority_hospitals(request):
         'search_query': search_query,
     }
     
+    if request.headers.get('Accept') == 'application/json' or request.GET.get('format') == 'json':
+        hospitals_list = []
+        for h in hospital_data:
+            hospitals_list.append({
+                'id': h['user'].id,
+                'username': h['user'].username,
+                'hospital_name': h['profile'].hospital_name if h['profile'] else h['user'].username,
+                'license_number': h['profile'].license_number if h['profile'] else '',
+                'state': h['profile'].state if h['profile'] else '',
+                'district': h['profile'].district if h['profile'] else '',
+                'complaint_count': h['complaint_count'],
+                'resolved_count': h['resolved_count'],
+                'active_warnings': h['active_warnings'],
+                'is_frozen': h['freeze_record'].status == 'frozen' if h['freeze_record'] else False,
+            })
+        return JsonResponse({
+            'hospitals': hospitals_list,
+            'status_filter': status_filter,
+            'search_query': search_query,
+        })
+        
     return render(request, "authorities/hospitals.html", context)
 
 
@@ -434,6 +573,22 @@ def authority_warnings(request):
         'warnings': warnings,
     }
     
+    if request.headers.get('Accept') == 'application/json' or request.GET.get('format') == 'json':
+        warnings_list = []
+        for w in warnings:
+            warnings_list.append({
+                'id': w.id,
+                'hospital_id': w.hospital.id,
+                'hospital_name': w.hospital.hospital_profile.hospital_name if hasattr(w.hospital, 'hospital_profile') else w.hospital.username,
+                'warning_type': w.warning_type,
+                'reason': w.reason,
+                'is_active': w.is_active,
+                'created_at': w.created_at.isoformat(),
+            })
+        return JsonResponse({
+            'warnings': warnings_list,
+        })
+        
     return render(request, "authorities/warnings.html", context)
 
 
@@ -458,11 +613,25 @@ def issue_warning(request, hospital_id):
         return redirect('authority_hospitals')
     
     if request.method == 'POST':
-        warning_type = request.POST.get('warning_type', 'serious')
-        reason = request.POST.get('reason', '')
-        complaint_id = request.POST.get('complaint_id', None)
+        if request.headers.get('Accept') == 'application/json' or request.content_type == 'application/json':
+            import json
+            try:
+                data = json.loads(request.body)
+            except:
+                data = {}
+            warning_type = data.get('warning_type', 'serious')
+            reason = data.get('reason', '')
+            complaint_id = data.get('complaint_id', None)
+            is_json = True
+        else:
+            warning_type = request.POST.get('warning_type', 'serious')
+            reason = request.POST.get('reason', '')
+            complaint_id = request.POST.get('complaint_id', None)
+            is_json = False
         
         if not reason:
+            if is_json:
+                return JsonResponse({'success': False, 'error': 'Warning reason is required'}, status=400)
             messages.error(request, "Warning reason is required")
             return redirect('authority_hospitals')
         
@@ -522,11 +691,23 @@ def issue_warning(request, hospital_id):
             hospital.is_active = False
             hospital.save()
             
+            if is_json:
+                return JsonResponse({
+                    'success': True,
+                    'message': f"Hospital has been frozen due to exceeding warning threshold ({warning_count} warnings)",
+                    'is_frozen': True
+                })
             messages.warning(
                 request,
                 f"Hospital has been frozen due to exceeding warning threshold ({warning_count} warnings)"
             )
         else:
+            if is_json:
+                return JsonResponse({
+                    'success': True,
+                    'message': f"Warning issued to {hospital.username}",
+                    'is_frozen': False
+                })
             messages.success(request, f"Warning issued to {hospital.username}")
         
         return redirect('authority_hospitals')
@@ -554,10 +735,23 @@ def authority_freeze_hospital(request, hospital_id):
     )
     
     if request.method == 'POST':
-        reason = request.POST.get('reason', '')
-        description = request.POST.get('description', '')
+        if request.headers.get('Accept') == 'application/json' or request.content_type == 'application/json':
+            import json
+            try:
+                data = json.loads(request.body)
+            except:
+                data = {}
+            reason = data.get('reason', '')
+            description = data.get('description', '')
+            is_json = True
+        else:
+            reason = request.POST.get('reason', '')
+            description = request.POST.get('description', '')
+            is_json = False
         
         if not reason or not description:
+            if is_json:
+                return JsonResponse({'success': False, 'error': 'Reason and description are required'}, status=400)
             messages.error(request, "Reason and description are required")
             return redirect('authority_hospitals')
         
@@ -568,6 +762,8 @@ def authority_freeze_hospital(request, hospital_id):
         ).first()
         
         if existing_freeze:
+            if is_json:
+                return JsonResponse({'success': False, 'error': 'This hospital is already frozen or has a pending appeal.'}, status=400)
             messages.error(request, f"This hospital is already frozen or has a pending appeal.")
             return redirect('authority_hospitals')
         
@@ -611,6 +807,8 @@ def authority_freeze_hospital(request, hospital_id):
                 link=f"/authority/hospitals/{hospital.id}/"
             )
         
+        if is_json:
+            return JsonResponse({'success': True, 'message': f"Hospital {hospital.username} has been frozen"})
         messages.success(request, f"Hospital {hospital.username} has been frozen")
         return redirect('authority_hospitals')
     
@@ -655,6 +853,8 @@ def authority_unfreeze_hospital(request, hospital_id):
         hospital.is_active = True
         hospital.save()
         
+        is_json = request.headers.get('Accept') == 'application/json' or request.content_type == 'application/json'
+        
         # Create notification for hospital
         from accounts.models import Notification
         Notification.objects.create(
@@ -680,6 +880,8 @@ def authority_unfreeze_hospital(request, hospital_id):
                 link=f"/authority/hospitals/{hospital.id}/"
             )
         
+        if is_json:
+            return JsonResponse({'success': True, 'message': f"Hospital {hospital.username} has been reactivated"})
         messages.success(request, f"Hospital {hospital.username} has been reactivated")
         return redirect('authority_hospitals')
     
@@ -767,6 +969,21 @@ def authority_notifications(request):
         'notifications': notifications,
     }
     
+    if request.headers.get('Accept') == 'application/json' or request.GET.get('format') == 'json':
+        notifs_list = []
+        for n in notifications:
+            notifs_list.append({
+                'id': n.id,
+                'notification_type': n.notification_type,
+                'title': n.title,
+                'message': n.message,
+                'is_read': n.is_read,
+                'created_at': n.created_at.isoformat(),
+            })
+        return JsonResponse({
+            'notifications': notifs_list,
+        })
+        
     return render(request, "authorities/notifications.html", context)
 
 
@@ -842,42 +1059,61 @@ def authority_settings(request):
     )
     
     if request.method == 'POST':
-        action = request.POST.get('action', '')
-        
+        if request.headers.get('Accept') == 'application/json' or request.content_type == 'application/json':
+            import json
+            try:
+                data = json.loads(request.body)
+            except:
+                data = {}
+            action = data.get('action', '')
+            is_json = True
+        else:
+            action = request.POST.get('action', '')
+            data = request.POST
+            is_json = False
+            
         if action == 'update_notifications':
-            settings_obj.email_notifications = 'email_notifications' in request.POST
-            settings_obj.escalation_alerts = 'escalation_alerts' in request.POST
-            settings_obj.warning_alerts = 'warning_alerts' in request.POST
-            settings_obj.freeze_alerts = 'freeze_alerts' in request.POST
+            settings_obj.email_notifications = 'email_notifications' in data or data.get('email_notifications', False)
+            settings_obj.escalation_alerts = 'escalation_alerts' in data or data.get('escalation_alerts', False)
+            settings_obj.warning_alerts = 'warning_alerts' in data or data.get('warning_alerts', False)
+            settings_obj.freeze_alerts = 'freeze_alerts' in data or data.get('freeze_alerts', False)
             settings_obj.save()
+            if is_json:
+                return JsonResponse({'success': True, 'message': 'Notification settings updated'})
             messages.success(request, "Notification settings updated")
         
         elif action == 'update_thresholds':
             settings_obj.response_time_threshold = int(
-                request.POST.get('response_time_threshold', 48)
+                data.get('response_time_threshold', 48)
             )
             settings_obj.view_time_threshold = int(
-                request.POST.get('view_time_threshold', 24)
+                data.get('view_time_threshold', 24)
             )
             settings_obj.warning_threshold = int(
-                request.POST.get('warning_threshold', 3)
+                data.get('warning_threshold', 3)
             )
             settings_obj.save()
+            if is_json:
+                return JsonResponse({'success': True, 'message': 'Threshold settings updated'})
             messages.success(request, "Threshold settings updated")
         
         elif action == 'password':
             from django.contrib.auth.forms import PasswordChangeForm
             from django.contrib.auth import update_session_auth_hash
-            password_form = PasswordChangeForm(request.user, request.POST)
+            password_form = PasswordChangeForm(request.user, data)
             if password_form.is_valid():
                 user = password_form.save()
                 update_session_auth_hash(request, user)
+                if is_json:
+                    return JsonResponse({'success': True, 'message': 'Password updated successfully'})
                 messages.success(request, "Password updated successfully.")
                 return redirect("authority_settings")
+            if is_json:
+                return JsonResponse({'success': False, 'errors': password_form.errors}, status=400)
             messages.error(request, "Please correct the password errors below.")
         
         # Only redirect if no password errors, otherwise render with form errors
-        if action != 'password' or (action == 'password' and password_form.is_valid()):
+        if not is_json and (action != 'password' or (action == 'password' and password_form.is_valid())):
             return redirect('authority_settings')
     
     # Initialize forms if not POST or if other action
@@ -890,6 +1126,17 @@ def authority_settings(request):
         'password_form': password_form,
     }
     
+    if request.headers.get('Accept') == 'application/json' or request.GET.get('format') == 'json':
+        return JsonResponse({
+            'response_time_threshold': settings_obj.response_time_threshold,
+            'view_time_threshold': settings_obj.view_time_threshold,
+            'warning_threshold': settings_obj.warning_threshold,
+            'email_notifications': settings_obj.email_notifications,
+            'escalation_alerts': settings_obj.escalation_alerts,
+            'warning_alerts': settings_obj.warning_alerts,
+            'freeze_alerts': settings_obj.freeze_alerts,
+        })
+        
     return render(request, "authorities/settings.html", context)
 
 
@@ -951,6 +1198,9 @@ def mark_notification_read(request, notification_id):
     notification.read_at = timezone.now()
     notification.save()
     
+    if request.headers.get('Accept') == 'application/json' or request.GET.get('format') == 'json':
+        return JsonResponse({'success': True, 'message': 'Notification marked as read'})
+        
     # Redirect to link if exists
     if notification.link:
         return redirect(notification.link)

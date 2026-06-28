@@ -122,6 +122,7 @@ class HospitalResponse(models.Model):
         related_name="public_responses"
     )
     message = models.TextField()
+    is_private = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

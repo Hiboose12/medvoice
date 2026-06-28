@@ -60,4 +60,7 @@ urlpatterns = [
     # Notifications
     path("api/notifications/", views.get_notifications, name="get_notifications"),
     path("api/notifications/read/<int:notification_id>/", views.mark_notification_read, name="mark_notification_read"),
+    path("api/user/", views.current_user_api, name="current_user_api"),
+    path("api/csrf/", views.csrf_token_view, name="api_csrf_token"),
+    path("api/change-password/", views.api_change_password, name="api_change_password"),
 ]

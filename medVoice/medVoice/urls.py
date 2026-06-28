@@ -37,7 +37,8 @@ urlpatterns = [
     path('', include('social.urls')),
     path('', include('hospitals.urls')),
     path('', include('authorities.urls')),
-
+    path('', include('super_admin.urls')),
+    path('api/', include('api.api_urls')),
 
 ]
 

@@ -29,8 +29,11 @@ def feed(request):
 
     if request.user.role == "superadmin":
         complaints = Complaint.objects.all().order_by('-created_at')
+    elif request.user.role in ["hospital", "authority"]:
+        # Hospitals and authorities see all active (non-blocked) complaints
+        complaints = Complaint.objects.exclude(user__account_status='blocked').order_by('-created_at')
     else:
-        # Exclude blocked users
+        # Patients and other users see public complaints or their own complaints
         complaints = Complaint.objects.filter(privacy_filter).exclude(user__account_status='blocked').order_by('-created_at')
 
     # Annotate with is_liked
@@ -73,11 +76,27 @@ def feed(request):
     else:
         users = User.objects.none()
     
-    # Get hospitals for edit modal dropdown
-    hospitals = User.objects.filter(role='hospital', is_approved=True)
+    # Get hospitals for edit modal dropdown (include frozen/suspended, exclude blocked)
+    hospitals = User.objects.filter(role='hospital', is_approved=True).exclude(account_status='blocked')
     
     # Get categories for edit modal dropdown
     categories = Category.objects.filter(is_active=True)
+
+    if request.headers.get('Accept') == 'application/json' or request.GET.get('format') == 'json':
+        hospitals_data = []
+        for h in hospitals:
+            hname = h.username
+            if hasattr(h, 'hospital_profile') and h.hospital_profile:
+                hname = h.hospital_profile.hospital_name
+            hospitals_data.append({
+                'id': h.id,
+                'name': hname
+            })
+        categories_data = [{'id': c.id, 'name': c.name} for c in categories]
+        return JsonResponse({
+            'hospitals': hospitals_data,
+            'categories': categories_data
+        })
 
     return render(request, 'complaints/feed.html', {
         'complaints': complaints,

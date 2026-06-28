@@ -1,45 +1,37 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="min-h-screen bg-zinc-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-lg border border-zinc-200 max-w-md w-full p-8">
-        <div class="text-center mb-6">
-            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span class="material-symbols-outlined text-red-600 text-3xl">block</span>
+<div class="min-h-screen bg-[#11161A] flex items-center justify-center p-4">
+    <div class="bg-[#1A2126] rounded-xl shadow-lg border border-[#2A343C] max-w-lg w-full p-8">
+        
+        <div class="mb-6">
+            <div class="w-16 h-16 bg-[#2A241C] rounded-full flex items-center justify-center mb-6">
+                <span class="material-symbols-outlined text-amber-500 text-3xl">gavel</span>
             </div>
-            <h1 class="text-2xl font-bold text-text-main mb-2">Account Frozen</h1>
-            <p class="text-text-muted">
-                Your hospital account has been frozen by the Health Authority.
+            <h1 class="text-3xl font-bold text-white mb-3">Account Frozen</h1>
+            <p class="text-zinc-400 text-sm leading-relaxed">
+                This account is frozen because of governance or authority action. Submit an explanation and evidence so the appeal can be reviewed.
             </p>
-        </div>
-
-        <div class="bg-red-50 border border-red-100 rounded-lg p-4 mb-6">
-            <h3 class="font-bold text-red-800 text-sm uppercase mb-1">Reason</h3>
-            <p class="text-red-900 font-medium">{{ freeze_record.description }}</p>
-            <p class="text-red-700 text-sm mt-2">Frozen on: {{ freeze_record.frozen_at|date:"M d, Y" }}</p>
-            {% if freeze_record.frozen_by %}
-            <p class="text-red-700 text-sm mt-1">Frozen by: {{ freeze_record.frozen_by.username }} ({{ freeze_record.frozen_by.role }})</p>
-            {% endif %}
         </div>
 
         {% if freeze_record.status == 'pending_review' %}
-        <div class="bg-blue-50 border border-blue-100 rounded-lg p-6 text-center">
-            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span class="material-symbols-outlined text-blue-600">pending_actions</span>
+        <div class="bg-[#1C2632] border border-[#253648] rounded-lg p-6 text-center mt-6">
+            <div class="w-12 h-12 bg-[#253648] rounded-full flex items-center justify-center mx-auto mb-3">
+                <span class="material-symbols-outlined text-blue-400">pending_actions</span>
             </div>
-            <h3 class="font-bold text-blue-800 text-lg mb-2">Appeal Under Review</h3>
-            <p class="text-blue-900 mb-4">
+            <h3 class="font-bold text-blue-400 text-lg mb-2">Appeal Under Review</h3>
+            <p class="text-blue-200 mb-4 text-sm">
                 You have submitted an explanation on {{ freeze_record.explanation_submitted_at|date:"M d, Y" }}.
                 The authority is currently reviewing your case.
             </p>
-            <div class="bg-white p-4 rounded border border-blue-100 text-left">
-                <p class="text-xs text-text-muted uppercase font-bold mb-1">Your Submission:</p>
-                <p class="text-sm text-text-main italic">"{{ freeze_record.explanation_text }}"</p>
+            <div class="bg-[#151D26] p-4 rounded border border-[#253648] text-left">
+                <p class="text-xs text-zinc-500 uppercase font-bold mb-1">Your Submission:</p>
+                <p class="text-sm text-zinc-300 italic">"{{ freeze_record.explanation_text }}"</p>
                 {% if freeze_record.explanation_evidence %}
-                <div class="mt-3 pt-3 border-t border-blue-100">
-                    <p class="text-xs text-text-muted uppercase font-bold mb-1">Evidence Attached:</p>
-                    <a href="{{ freeze_record.explanation_evidence.url }}" target="_blank" class="flex items-center gap-2 text-primary hover:underline">
-                        <span class="material-symbols-outlined text-sm">image</span>
+                <div class="mt-3 pt-3 border-t border-[#253648]">
+                    <p class="text-xs text-zinc-500 uppercase font-bold mb-1">Evidence Attached:</p>
+                    <a href="{{ freeze_record.explanation_evidence.url }}" target="_blank" class="flex items-center gap-2 text-emerald-500 hover:text-emerald-400 text-sm font-medium">
+                        <span class="material-symbols-outlined text-sm">attach_file</span>
                         View Attached Evidence
                     </a>
                 </div>
@@ -47,49 +39,61 @@
             </div>
             <form action="{% url 'hospital_logout' %}" method="post" class="mt-6">
                 {% csrf_token %}
-                <button type="submit" class="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium">
-                    Logout
+                <button type="submit" class="w-full text-center text-sm text-zinc-400 hover:text-white font-medium transition-colors">
+                    Back to Login
+                </button>
+            </form>
+        </div>
+        {% elif freeze_record.status == 'permanently_blocked' %}
+        <div class="bg-[#2A1C1C] border border-[#482525] rounded-lg p-6 text-center mt-6">
+            <div class="w-12 h-12 bg-[#482525] rounded-full flex items-center justify-center mx-auto mb-3">
+                <span class="material-symbols-outlined text-red-500">block</span>
+            </div>
+            <h3 class="font-bold text-red-500 text-lg mb-2">Account Permanently Blocked</h3>
+            <p class="text-red-200 mb-4 text-sm">
+                Your appeal was reviewed and rejected. Your hospital account has been permanently blocked.
+            </p>
+            <form action="{% url 'hospital_logout' %}" method="post" class="mt-6">
+                {% csrf_token %}
+                <button type="submit" class="w-full text-center text-sm text-zinc-400 hover:text-white font-medium transition-colors">
+                    Back to Login
                 </button>
             </form>
         </div>
         {% else %}
-        <form method="post" class="space-y-6" enctype="multipart/form-data">
+        
+        <form method="post" class="space-y-6 mt-8" enctype="multipart/form-data">
             {% csrf_token %}
-            <div>
-                <label for="explanation" class="block text-sm font-medium text-text-main mb-2">
-                    Appeal / Explanation
+            <div class="relative">
+                <label for="explanation" class="absolute -top-2 left-3 bg-[#1A2126] px-1 text-xs font-bold text-zinc-400">
+                    Reactivation reason
                 </label>
                 <textarea name="explanation" id="explanation" rows="4" required
-                    class="w-full px-4 py-2 border border-zinc-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder-zinc-400"
-                    placeholder="Please explain why your account should be reactivated..."></textarea>
-                <p class="text-xs text-text-muted mt-2">
-                    The health authority will review your explanation and decide whether to reactivate your account.
-                </p>
+                    class="w-full px-4 py-3 bg-transparent border border-[#2A343C] rounded-lg text-white focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all placeholder-zinc-600 resize-none"
+                    placeholder="SORRY we will try to not happen it"></textarea>
             </div>
 
-            <div>
-                <label for="evidence" class="block text-sm font-medium text-text-main mb-2">
-                    Supporting Evidence (Optional)
+            <div class="flex items-center">
+                <label for="evidence" class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-[#11161A] border border-[#11161A] hover:border-[#2A343C] text-emerald-500 rounded-full transition-colors font-medium text-sm">
+                    <span class="material-symbols-outlined text-sm">attach_file</span>
+                    Attach evidence
                 </label>
-                <input type="file" name="evidence" id="evidence" accept="image/*,.pdf"
-                    class="w-full px-4 py-2 border border-zinc-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-blue-600"></input>
-                <p class="text-xs text-text-muted mt-2">
-                    Upload any documents or images that support your appeal.
-                </p>
+                <input type="file" name="evidence" id="evidence" accept="image/*,.pdf" class="hidden" onchange="document.getElementById('file-name').textContent = this.files[0] ? this.files[0].name : '';">
+                <span id="file-name" class="ml-3 text-xs text-zinc-500 truncate max-w-[200px]"></span>
             </div>
 
-            <button type="submit"
-                class="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20">
-                Submit Appeal
-            </button>
-
+            <div class="flex items-center justify-between pt-4 mt-8 border-t border-[#2A343C]">
+                <button type="button" onclick="document.getElementById('logout-form').submit();" class="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-[#11161A] font-bold rounded-full transition-colors text-sm">
+                    Back to Login
+                </button>
+                <button type="submit" class="px-6 py-2 bg-transparent text-emerald-500 hover:text-emerald-400 font-bold transition-colors text-sm">
+                    Submit request
+                </button>
+            </div>
         </form>
 
-        <form action="{% url 'hospital_logout' %}" method="post" class="mt-4">
+        <form id="logout-form" action="{% url 'hospital_logout' %}" method="post" class="hidden">
             {% csrf_token %}
-            <button type="submit" class="w-full text-center text-sm text-text-muted hover:text-text-main">
-                Logout
-            </button>
         </form>
         {% endif %}
     </div>
